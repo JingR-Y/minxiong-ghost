@@ -72,6 +72,43 @@
         body.mobile-mode #mobileControlLayer {
             /* 控制層高度自適應 */
         }
+
+        /* 手機初始畫面自適應：壓縮使其不超出螢幕 */
+        @media (max-width: 767px) {
+            #startScreen {
+                overflow-y: auto;
+                padding: 16px 12px;
+                justify-content: flex-start !important;
+            }
+            #startScreen .max-w-xl {
+                width: 100%;
+            }
+            /* 壓縮故事背景說明框 */
+            #startScreen .border.border-red-900 {
+                padding: 10px 12px !important;
+                margin-bottom: 14px !important;
+                font-size: 12px !important;
+            }
+            #startScreen .border.border-red-900 p {
+                margin-bottom: 6px !important;
+            }
+            /* 標題縮小 */
+            #startScreen h1 {
+                font-size: 2.5rem !important;
+                margin-bottom: 2px !important;
+            }
+            #startScreen .text-lg {
+                font-size: 1rem !important;
+                margin-bottom: 12px !important;
+            }
+            #startScreen .text-red-600.text-sm {
+                font-size: 10px !important;
+                margin-bottom: 4px !important;
+            }
+            /* 裝置選擇與章節按鈕間距壓縮 */
+            #deviceSelectPanel { margin-bottom: 10px !important; }
+            #startScreen .flex.flex-col.sm\:flex-row { margin-bottom: 10px !important; }
+        }
     </style>
 </head>
 <body class="w-screen h-screen flex flex-col justify-between items-center relative select-none">
@@ -2648,17 +2685,7 @@
                 const dst = document.getElementById('mobileQuestList');
                 if (src && dst) dst.innerHTML = src.innerHTML;
 
-                // 同步背包格
-                const srcInv = document.getElementById('inventoryGrid');
-                const dstInv = document.getElementById('mobileInventoryGrid');
-                if (srcInv && dstInv) {
-                    dstInv.innerHTML = srcInv.innerHTML;
-                    // 讓物品格點擊描述顯示在手機面板的說明欄
-                    dstInv.querySelectorAll('[onclick]').forEach(el => {
-                        const orig = el.getAttribute('onclick');
-                        el.setAttribute('onclick', orig.replace("itemDescription", "mobileItemDesc"));
-                    });
-                }
+
 
                 // 計算顯示高度（不超過 canvas 區域）
                 const vw = window.innerWidth;
@@ -2763,14 +2790,7 @@
             </ul>
         </div>
 
-        <!-- 背包（從主 inventoryGrid 同步）-->
-        <div>
-            <p class="text-stone-400 text-[10px] uppercase tracking-widest mb-2">背包物資</p>
-            <div class="grid grid-cols-4 gap-2" id="mobileInventoryGrid">
-                <!-- 由 JS 同步 -->
-            </div>
-            <p id="mobileItemDesc" class="text-[11px] text-stone-500 italic mt-2 border-t border-stone-900 pt-2 min-h-[20px]">點選物品查看說明</p>
-        </div>
+
     </div>
 
 </body>
