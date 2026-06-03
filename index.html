@@ -184,21 +184,21 @@
             <!-- Sanity / Flashlight Battery / HP UI -->
             <div class="absolute top-4 right-4 z-30 flex flex-col gap-1.5 text-right bg-black/60 p-2.5 rounded-xl border border-stone-800 backdrop-blur-sm">
                 <div class="flex items-center gap-2 justify-end">
-                    <span class="text-[10px] text-gray-400 uppercase font-bold tracking-wider">血量 (Health)</span>
+                    <span class="text-[10px] text-gray-400 uppercase font-bold tracking-wider">血量</span>
                     <div class="w-20 bg-stone-900 border border-stone-700 h-2 rounded overflow-hidden">
                         <div id="hpBar" class="h-full bg-red-600 transition-all duration-300" style="width: 100%"></div>
                     </div>
                     <i class="fa-solid fa-heart text-red-500 text-sm animate-pulse" id="hpIcon"></i>
                 </div>
                 <div class="flex items-center gap-2 justify-end">
-                    <span class="text-[10px] text-gray-400 uppercase font-bold tracking-wider">理智 (Sanity)</span>
+                    <span class="text-[10px] text-gray-400 uppercase font-bold tracking-wider">理智</span>
                     <div class="w-20 bg-stone-900 border border-stone-700 h-2 rounded overflow-hidden">
                         <div id="sanityBar" class="h-full bg-purple-600 transition-all duration-300" style="width: 100%"></div>
                     </div>
                     <i class="fa-solid fa-brain text-purple-400 text-sm" id="sanityIcon"></i>
                 </div>
                 <div class="flex items-center gap-2 justify-end">
-                    <span class="text-[10px] text-gray-400 uppercase font-bold tracking-wider">電量 (Battery)</span>
+                    <span class="text-[10px] text-gray-400 uppercase font-bold tracking-wider">電量</span>
                     <div class="w-20 bg-stone-900 border border-stone-700 h-2 rounded overflow-hidden">
                         <div id="batteryBar" class="h-full bg-green-500" style="width: 100%"></div>
                     </div>
@@ -2702,33 +2702,33 @@
 
     <!-- ══ 手機專用懸浮控制層（固定在螢幕底部，手機模式才顯示）══ -->
     <div id="mobileControlLayer" style="display:none;z-index:60" class="fixed bottom-0 left-0 right-0 pointer-events-none select-none">
-        <div class="flex justify-between items-center pointer-events-none"
-             style="background:rgba(0,0,0,0.88);border-top:1px solid #44403c;padding:10px 16px 18px;box-sizing:border-box;">
+        <div style="background:rgba(0,0,0,0.88);border-top:1px solid #44403c;box-sizing:border-box;
+                    display:flex;align-items:center;justify-content:space-around;padding:8px 12px 14px;">
 
-            <!-- D-pad 左下 -->
-            <div class="pointer-events-auto" style="touch-action:none">
-                <div style="display:grid;grid-template-columns:60px 60px 60px;grid-template-rows:60px 60px 60px;gap:5px;">
+            <!-- D-pad 偏左中 -->
+            <div class="pointer-events-auto" style="touch-action:none;margin-left:4vw">
+                <div style="display:grid;grid-template-columns:56px 56px 56px;grid-template-rows:56px 56px 56px;gap:4px;">
                     <div></div>
                     <button class="bg-black/80 border border-stone-500 rounded-xl flex items-center justify-center text-white active:bg-red-950"
-                        style="touch-action:none;font-size:22px"
+                        style="touch-action:none;font-size:20px"
                         ontouchstart="triggerMobileMove('up');event.preventDefault()"
                         ontouchend="stopMobileMove();event.preventDefault()"
                         ontouchcancel="stopMobileMove()">▲</button>
                     <div></div>
                     <button class="bg-black/80 border border-stone-500 rounded-xl flex items-center justify-center text-white active:bg-red-950"
-                        style="touch-action:none;font-size:22px"
+                        style="touch-action:none;font-size:20px"
                         ontouchstart="triggerMobileMove('left');event.preventDefault()"
                         ontouchend="stopMobileMove();event.preventDefault()"
                         ontouchcancel="stopMobileMove()">◀</button>
                     <div class="bg-black/50 rounded-xl flex items-center justify-center text-stone-500 text-[9px]">移動</div>
                     <button class="bg-black/80 border border-stone-500 rounded-xl flex items-center justify-center text-white active:bg-red-950"
-                        style="touch-action:none;font-size:22px"
+                        style="touch-action:none;font-size:20px"
                         ontouchstart="triggerMobileMove('right');event.preventDefault()"
                         ontouchend="stopMobileMove();event.preventDefault()"
                         ontouchcancel="stopMobileMove()">▶</button>
                     <div></div>
                     <button class="bg-black/80 border border-stone-500 rounded-xl flex items-center justify-center text-white active:bg-red-950"
-                        style="touch-action:none;font-size:22px"
+                        style="touch-action:none;font-size:20px"
                         ontouchstart="triggerMobileMove('down');event.preventDefault()"
                         ontouchend="stopMobileMove();event.preventDefault()"
                         ontouchcancel="stopMobileMove()">▼</button>
@@ -2736,31 +2736,34 @@
                 </div>
             </div>
 
-            <!-- 右側按鈕 -->
-            <div class="pointer-events-auto flex flex-col gap-3 items-end" style="touch-action:none">
-                <!-- 任務/背包切換 -->
-                <button onclick="toggleMobileSidebar()"
-                    class="border border-stone-500 rounded-xl text-stone-300 font-bold active:bg-stone-800 flex flex-col items-center justify-center"
-                    style="width:58px;height:42px;font-size:10px;background:rgba(0,0,0,0.8)">
-                    <i class="fa-solid fa-scroll text-amber-500 text-sm"></i>
-                    <span>任務<br>背包</span>
-                </button>
-                <button class="border border-amber-700 rounded-xl text-amber-400 font-bold active:bg-amber-950 flex flex-col items-center justify-center"
-                    style="touch-action:none;width:58px;height:50px;font-size:11px;background:rgba(0,0,0,0.8)"
-                    ontouchstart="keys['shift']=true;event.preventDefault()"
-                    ontouchend="keys['shift']=false;event.preventDefault()"
-                    ontouchcancel="keys['shift']=false">
-                    <i class="fa-solid fa-bolt text-base"></i>
-                    <span>衝刺</span>
-                </button>
+            <!-- 右側：互動 + 衝刺 + 任務背包，偏右中 -->
+            <div class="pointer-events-auto flex flex-col gap-2 items-center" style="touch-action:none;margin-right:4vw">
+                <!-- 互動施法（主要大按鈕） -->
                 <button class="border-2 border-red-500 rounded-full text-white font-bold flex flex-col items-center justify-center shadow-lg active:scale-90"
-                    style="touch-action:none;width:70px;height:70px;font-size:11px;background:rgba(80,10,10,0.9)"
+                    style="touch-action:none;width:72px;height:72px;font-size:11px;background:rgba(80,10,10,0.9)"
                     ontouchstart="triggerInteractStart();event.preventDefault()"
                     ontouchend="triggerInteractEnd();event.preventDefault()"
                     ontouchcancel="triggerInteractEnd()">
                     <i class="fa-solid fa-hand-pointer text-xl text-red-300"></i>
                     <span class="mt-0.5 leading-none text-center">互動<br>施法</span>
                 </button>
+                <!-- 衝刺 + 任務背包 並排 -->
+                <div class="flex gap-2">
+                    <button class="border border-amber-700 rounded-xl text-amber-400 font-bold active:bg-amber-950 flex flex-col items-center justify-center"
+                        style="touch-action:none;width:52px;height:44px;font-size:10px;background:rgba(0,0,0,0.8)"
+                        ontouchstart="keys['shift']=true;event.preventDefault()"
+                        ontouchend="keys['shift']=false;event.preventDefault()"
+                        ontouchcancel="keys['shift']=false">
+                        <i class="fa-solid fa-bolt text-sm"></i>
+                        <span>衝刺</span>
+                    </button>
+                    <button onclick="toggleMobileSidebar()"
+                        class="border border-stone-500 rounded-xl text-stone-300 font-bold active:bg-stone-800 flex flex-col items-center justify-center"
+                        style="width:52px;height:44px;font-size:10px;background:rgba(0,0,0,0.8)">
+                        <i class="fa-solid fa-scroll text-amber-500 text-sm"></i>
+                        <span>任務<br>背包</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
