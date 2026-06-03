@@ -1,0 +1,2682 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- 🌟 更新遊戲標題，使之與民雄鬼屋事蹟相關聯，並保留完美修復版後綴 -->
+    <title>民雄鬼屋異聞錄：深井與巴洛克古厝 - 完美修復版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght=700&family=Noto+Serif+TC:wght=400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Noto Serif TC', serif;
+            background-color: #030303;
+            color: #eaeaea;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            /* 🌟 整體亮度調高至 1.25，確保死角道路清晰可見，又不失驚悚感 */
+            filter: brightness(1.25); 
+        }
+        .gothic-title {
+            font-family: 'Cinzel', 'Noto Serif TC', serif;
+        }
+        /* Scared vignette pulse */
+        @keyframes panic-pulse {
+            0% { box-shadow: inset 0 0 40px rgba(0,0,0,1); }
+            50% { box-shadow: inset 0 0 100px rgba(120,10,10,0.5); }
+            100% { box-shadow: inset 0 0 40px rgba(0,0,0,1); }
+        }
+        .vignette-panic {
+            animation: panic-pulse 4s infinite ease-in-out;
+            pointer-events: none;
+        }
+        /* Custom CRT Scanlines effect */
+        .crt-overlay::after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            aspect-ratio: 16/9;
+            background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* 手機直立模式 */
+        body.mobile-mode {
+            overflow: hidden;
+        }
+        body.mobile-mode .game-layout-wrapper {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            padding: 0 !important;
+            gap: 0 !important;
+            height: 100vh;
+        }
+        body.mobile-mode .game-canvas-container {
+            max-width: 100vw !important;
+            width: 100vw !important;
+            aspect-ratio: 4/3;
+            border-radius: 0 !important;
+            border-left: none !important;
+            border-right: none !important;
+        }
+        body.mobile-mode #rightSidebar {
+            display: none !important;
+        }
+        /* 手機控制列佔底部剩餘空間 */
+        body.mobile-mode #mobileControlLayer {
+            /* 控制層高度自適應 */
+        }
+    </style>
+</head>
+<body class="w-screen h-screen flex flex-col justify-between items-center relative select-none">
+
+    <!-- Spooky Cinematic Vignette -->
+    <div class="vignette-panic absolute inset-0 z-30"></div>
+
+    <!-- Jumpscare Overlay -->
+    <div id="jumpscareOverlay" class="absolute inset-0 bg-red-950/95 z-40 hidden flex flex-col items-center justify-center select-none pointer-events-none transition-all">
+        <span class="text-8xl md:text-9xl filter drop-shadow-[0_0_35px_rgba(255,0,0,0.95)] animate-ping">👹</span>
+        <span class="gothic-title text-red-600 text-3xl md:text-6xl font-black tracking-widest mt-6 animate-pulse">怨 靈 襲 來</span>
+        <p class="text-stone-400 text-sm mt-4 tracking-widest animate-pulse">理智受到強烈衝擊...</p>
+    </div>
+
+    <!-- START SCREEN (WITH INTEGRATED CHAPTER SELECTION MODAL) -->
+    <div id="startScreen" class="absolute inset-0 bg-black z-50 flex flex-col justify-center items-center p-6 text-center">
+        <div class="max-w-xl flex flex-col items-center">
+            <p class="text-red-600 text-sm tracking-widest font-bold mb-2 uppercase">A TAIWANESE FOLKLORE HORROR RPG DEMO</p>
+            <!-- 🌟 正式更名為《民雄鬼屋異聞錄》並保留時空穿梭副標題 -->
+            <h1 class="gothic-title text-4xl md:text-6xl font-black text-red-700 tracking-wider mb-2 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">民雄鬼屋</h1>
+            <p class="text-gray-400 text-lg md:text-xl font-light mb-8 italic tracking-wide">《深井與巴洛克古厝》</p>
+            
+            <div class="border border-red-900 bg-stone-950/80 p-5 rounded-lg mb-8 text-left text-sm text-stone-300 max-w-md space-y-3 leading-relaxed shadow-2xl">
+                <p>💡 <span class="text-red-500 font-bold">故事背景：</span>2026 年，文史社社員「阿誠」深夜潛入民雄劉家古厝尋找失蹤同學。在乾涸的古井旁，驚覺能穿梭於「2026年枯朽現代」與「1930年巴洛克日治繁華」。</p>
+                <p>⌨️ <span class="text-red-500 font-bold">鍵盤操作：</span>使用 <span class="bg-stone-800 text-white px-1 py-0.5 rounded font-mono text-[11px]">W A S D</span> 或方向鍵移動，按住 <span class="bg-stone-800 text-white px-1 py-0.5 rounded font-mono text-[11px]">Shift</span> 可衝刺跑動。靠近物件會自動交互，或點擊畫面上的按鈕。</p>
+                <p>🚨 <span class="text-red-500 font-bold">符咒淨化：</span>第二章必須與女鬼保持在一定距離內，並**按住空白鍵不放**進行施法充能。若女鬼處於「狂暴狀態（紅光環繞）」，符咒將完全失效，必須立刻躲避！</p>
+            </div>
+
+            <!-- 裝置選擇 -->
+            <div id="deviceSelectPanel" class="w-full max-w-md mb-6">
+                <p class="text-stone-400 text-xs mb-3 tracking-widest text-center uppercase">選擇你的裝置</p>
+                <div class="flex gap-3">
+                    <button onclick="selectDevice('desktop')" id="btn_desktop"
+                        class="flex-1 py-3 bg-stone-900 hover:bg-stone-800 border border-stone-600 hover:border-amber-600 text-white font-bold rounded-xl transition duration-200 transform hover:scale-105 active:scale-95 text-sm tracking-wide">
+                        <i class="fa-solid fa-desktop mr-2 text-amber-500"></i> 電腦
+                        <div class="text-[10px] text-stone-400 font-normal mt-0.5">鍵盤 WASD + 空白鍵</div>
+                    </button>
+                    <button onclick="selectDevice('mobile')" id="btn_mobile"
+                        class="flex-1 py-3 bg-stone-900 hover:bg-stone-800 border border-stone-600 hover:border-red-500 text-white font-bold rounded-xl transition duration-200 transform hover:scale-105 active:scale-95 text-sm tracking-wide">
+                        <i class="fa-solid fa-mobile-screen mr-2 text-red-400"></i> 手機
+                        <div class="text-[10px] text-stone-400 font-normal mt-0.5">虛擬搖桿觸控操作</div>
+                    </button>
+                </div>
+                <p id="deviceHint" class="text-stone-600 text-[10px] text-center mt-2">尚未選擇裝置</p>
+            </div>
+
+            <!-- 🌟 關卡選擇選單：維持原先的第一、二章無縫選擇按鈕 -->
+            <div class="flex flex-col sm:flex-row gap-4 w-full justify-center max-w-md mb-8">
+                <button onclick="selectAndStartChapter(1)" class="flex-1 px-6 py-3.5 bg-stone-950 hover:bg-stone-900 text-white font-bold rounded-lg border border-red-900 hover:border-red-600 transition duration-300 transform hover:scale-105 active:scale-95 tracking-wider text-sm shadow-lg">
+                    <i class="fa-solid fa-hourglass-half mr-2 text-red-500"></i> 第一章：古井與時空穿梭
+                </button>
+                <button onclick="selectAndStartChapter(2)" class="flex-1 px-6 py-3.5 bg-red-950/80 hover:bg-red-800 text-white font-bold rounded-lg border border-red-600 transition duration-300 transform hover:scale-105 active:scale-95 tracking-wider text-sm shadow-lg shadow-red-900/30">
+                    <i class="fa-solid fa-ghost mr-2 animate-pulse text-red-400"></i> 第二章：洋樓內部與怨靈
+                </button>
+            </div>
+            
+            <p class="text-stone-600 text-xs">※ 建議配戴耳機並開啟瀏覽器聲音以獲得最佳恐怖氛圍</p>
+        </div>
+    </div>
+
+    <!-- MAIN GAME SCREEN CONTAINER -->
+    <div class="game-layout-wrapper w-full h-full flex flex-col md:flex-row items-center justify-center p-2 md:p-4 gap-4 z-20">
+        
+        <!-- Game Area (Canvas + UI Overlays) -->
+        <div class="game-canvas-container relative flex flex-col items-center justify-center bg-stone-950 border-2 border-stone-800 rounded-xl overflow-hidden shadow-2xl w-full max-w-[800px] aspect-[4/3] crt-overlay">
+            
+            <!-- Timeline Status Indicator -->
+            <div class="absolute top-4 left-4 z-30 flex items-center gap-2 bg-black/70 border border-stone-700 px-3 py-1.5 rounded-full backdrop-blur-md">
+                <span id="timelineDot" class="w-3.5 h-3.5 rounded-full bg-blue-500 animate-pulse"></span>
+                <span id="timelineText" class="text-xs font-bold tracking-widest text-blue-400">當前時空：2026年 現代荒廢</span>
+            </div>
+
+            <!-- Sanity / Flashlight Battery / HP UI -->
+            <div class="absolute top-4 right-4 z-30 flex flex-col gap-1.5 text-right bg-black/60 p-2.5 rounded-xl border border-stone-800 backdrop-blur-sm">
+                <div class="flex items-center gap-2 justify-end">
+                    <span class="text-[10px] text-gray-400 uppercase font-bold tracking-wider">血量 (Health)</span>
+                    <div class="w-20 bg-stone-900 border border-stone-700 h-2 rounded overflow-hidden">
+                        <div id="hpBar" class="h-full bg-red-600 transition-all duration-300" style="width: 100%"></div>
+                    </div>
+                    <i class="fa-solid fa-heart text-red-500 text-sm animate-pulse" id="hpIcon"></i>
+                </div>
+                <div class="flex items-center gap-2 justify-end">
+                    <span class="text-[10px] text-gray-400 uppercase font-bold tracking-wider">理智 (Sanity)</span>
+                    <div class="w-20 bg-stone-900 border border-stone-700 h-2 rounded overflow-hidden">
+                        <div id="sanityBar" class="h-full bg-purple-600 transition-all duration-300" style="width: 100%"></div>
+                    </div>
+                    <i class="fa-solid fa-brain text-purple-400 text-sm" id="sanityIcon"></i>
+                </div>
+                <div class="flex items-center gap-2 justify-end">
+                    <span class="text-[10px] text-gray-400 uppercase font-bold tracking-wider">電量 (Battery)</span>
+                    <div class="w-20 bg-stone-900 border border-stone-700 h-2 rounded overflow-hidden">
+                        <div id="batteryBar" class="h-full bg-green-500" style="width: 100%"></div>
+                    </div>
+                    <i class="fa-solid fa-battery-three-quarters text-green-500 text-sm" id="batteryIcon"></i>
+                </div>
+            </div>
+
+            <!-- Game Canvas -->
+            <canvas id="gameCanvas" class="w-full h-full object-cover cursor-crosshair"></canvas>
+
+            <!-- Spooky Notification Toast -->
+            <!-- 🌟 核心防護：確保帶有正確 id="toastText" 的標籤結構 100% 存在於 DOM 中 -->
+            <div id="gameToast" class="absolute bottom-16 left-1/2 -translate-x-1/2 bg-red-950/90 border border-red-500 text-red-200 text-xs py-2 px-4 rounded-md shadow-lg opacity-0 transition-opacity duration-300 z-40 text-center select-none pointer-events-none">
+                <i class="fa-solid fa-circle-exclamation mr-1.5 text-red-400"></i> <span id="toastText">發生了不對勁的事...</span>
+            </div>
+
+            <!-- Dialogue Engine Panel -->
+            <div id="dialoguePanel" class="fixed bottom-0 left-0 right-0 bg-stone-950/98 border-t-2 border-amber-900/80 p-4 shadow-2xl gap-4 backdrop-blur-sm" style="display:none;z-index:70" ontouchstart="advanceDialogue();event.stopPropagation()" onclick="advanceDialogue()">
+                <!-- Dialogue Character Avatar -->
+                <div class="flex-shrink-0 w-12 h-12 md:w-16 md:h-16 rounded-lg bg-stone-900 border border-stone-800 flex items-center justify-center overflow-hidden">
+                    <span id="dialogueAvatar" class="text-2xl md:text-3xl">🧑‍🎓</span>
+                </div>
+                <!-- Dialogue Text Content -->
+                <div class="flex-grow flex flex-col justify-between">
+                    <div>
+                        <h4 id="dialogueSpeaker" class="text-xs font-bold text-amber-500 tracking-wider mb-1">阿誠 (2026)</h4>
+                        <p id="dialogueText" class="text-sm text-stone-200 leading-relaxed min-h-[40px]">這裡太暗了...我需要找個東西照明...</p>
+                    </div>
+                    <!-- Action Instructions -->
+                    <div class="flex justify-end items-center mt-2 text-[10px] text-stone-500 gap-2">
+                        <span>點擊對話框或按任何鍵繼續</span>
+                        <i class="fa-solid fa-chevron-down animate-bounce text-amber-600"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dark Flash Overlay for Time-Travel transition -->
+            <div id="warpOverlay" class="absolute inset-0 bg-black opacity-0 pointer-events-none transition-opacity duration-500 z-40 flex items-center justify-center">
+                <div class="text-center text-red-500 text-xl font-bold tracking-widest gothic-title animate-pulse">
+                    <i class="fa-solid fa-hourglass-half mr-2 text-2xl"></i> 時空扭曲中...
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT SIDEBAR: INVENTORY, LOCAL LORE & CONTROLS -->
+        <div id="rightSidebar" class="w-full md:w-72 flex flex-col gap-3 flex-shrink-0 self-stretch justify-between">
+            <!-- Game Info & Progress -->
+            <div class="bg-stone-950 border border-stone-800 p-4 rounded-xl flex flex-col gap-3 max-h-[220px] overflow-y-auto scrollbar" id="progressBox">
+                <div class="flex items-center gap-2 border-b border-stone-800 pb-2">
+                    <i class="fa-solid fa-scroll text-amber-600"></i>
+                    <h2 class="text-sm font-bold tracking-wider text-stone-300">文史調查詳細進度</h2>
+                </div>
+                <!-- Quest List -->
+                <ul class="text-xs space-y-2.5 text-stone-400" id="questList">
+                    <li class="flex items-start gap-1.5" id="quest_fence">
+                        <i class="fa-regular fa-square text-stone-600 mt-0.5" id="qIcon_fence"></i>
+                        <span>往右走到底翻找咖啡店工具箱 🧰 取得「生鏽剪線鉗」，再對左邊 🚧 鐵門按空白鍵剪開進入。</span>
+                    </li>
+                    <li class="flex items-start gap-1.5" id="quest_well">
+                        <i class="fa-regular fa-square text-stone-600 mt-0.5" id="qIcon_well"></i>
+                        <span>穿過鐵網門，走到中央古井 🕳️ 旁按空白鍵往下窺視，觸發滴水異象傳送。</span>
+                    </li>
+                    <li class="flex items-start gap-1.5" id="quest_mansion">
+                        <i class="fa-regular fa-square text-stone-600 mt-0.5" id="qIcon_mansion"></i>
+                        <span>在1930年往右與婢女小蓮對話取得洋樓鑰匙。異變驚嚇後在古井旁按空白鍵返回現代，對上方正門 🚪 使用鑰匙。</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Inventory System -->
+            <div class="bg-stone-950 border border-stone-800 p-4 rounded-xl flex-grow flex flex-col gap-3 min-h-[100px]">
+                <div class="flex items-center gap-2 border-b border-stone-800 pb-2">
+                    <i class="fa-solid fa-backpack text-amber-600"></i>
+                    <h2 class="text-sm font-bold tracking-wider text-stone-300">背包物資</h2>
+                </div>
+                <div class="grid grid-cols-4 gap-2" id="inventoryGrid">
+                    <!-- Flashlight (Default item) -->
+                    <div class="aspect-square bg-stone-900 border border-stone-700 rounded-lg flex flex-col items-center justify-center p-1 cursor-help hover:border-amber-700 relative group" onclick="showItemDesc('flashlight')">
+                        <span class="text-lg">🔦</span>
+                        <span class="text-[9px] text-gray-400 mt-1">手電筒</span>
+                        <div class="absolute scale-0 group-hover:scale-100 transition-transform bg-black text-stone-300 text-[10px] p-2 rounded border border-stone-700 -top-16 left-0 right-0 z-30 pointer-events-none">
+                            可以照亮黑暗。電量可用。
+                        </div>
+                    </div>
+                </div>
+                <p id="itemDescription" class="text-[11px] text-stone-500 italic mt-auto border-t border-stone-900 pt-2 min-h-[24px]">點選物品查看說明</p>
+            </div>
+
+            <!-- Virtual Controller for Mobile devices -->
+            <div class="bg-stone-950 border border-stone-800 p-3 rounded-xl flex items-center justify-between gap-3">
+                <!-- Virtual Joystick -->
+                <div id="virtualJoystick" class="grid grid-cols-3 gap-1 w-24 h-24 relative flex-shrink-0">
+                    <div></div>
+                    <button class="bg-stone-900 active:bg-red-950 border border-stone-700 rounded-lg flex items-center justify-center text-stone-300" onmousedown="triggerMobileMove('up')" onmouseup="stopMobileMove()" ontouchstart="triggerMobileMove('up')" ontouchend="stopMobileMove()">
+                        <i class="fa-solid fa-chevron-up"></i>
+                    </button>
+                    <div></div>
+                    <button class="bg-stone-900 active:bg-red-950 border border-stone-700 rounded-lg flex items-center justify-center text-stone-300" onmousedown="triggerMobileMove('left')" onmouseup="stopMobileMove()" ontouchstart="triggerMobileMove('left')" ontouchend="stopMobileMove()">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <div class="bg-stone-950 flex items-center justify-center text-[9px] text-stone-600">MOVE</div>
+                    <button class="bg-stone-900 active:bg-red-950 border border-stone-700 rounded-lg flex items-center justify-center text-stone-300" onmousedown="triggerMobileMove('right')" onmouseup="stopMobileMove()" ontouchstart="triggerMobileMove('right')" ontouchend="stopMobileMove()">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                    <div></div>
+                    <button class="bg-stone-900 active:bg-red-950 border border-stone-700 rounded-lg flex items-center justify-center text-stone-300" onmousedown="triggerMobileMove('down')" onmouseup="stopMobileMove()" ontouchstart="triggerMobileMove('down')" ontouchend="stopMobileMove()">
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+                    <div></div>
+                </div>
+
+                <!-- 🌟 重新設計的操作秘笈卡片 (原按鈕位置替換) -->
+                <div class="flex-grow flex flex-col gap-1 bg-stone-900/40 p-2 rounded-lg border border-stone-800 text-[10px] text-stone-300 h-24 justify-center">
+                    <div class="text-amber-500 font-bold border-b border-stone-800 pb-0.5 mb-1 flex items-center gap-1">
+                        <i class="fa-solid fa-keyboard"></i> 鍵盤操作秘笈
+                    </div>
+                    <div class="space-y-0.5 leading-snug">
+                        <div><span class="bg-stone-800 text-[9px] px-1 py-0.2 rounded text-white font-mono text-[11px]">Shift</span> 奔跑 / 加速移動 (7.0 速度)</div>
+                        <div><span class="bg-stone-800 text-[9px] px-1 py-0.2 rounded text-white font-mono text-[11px]">空白鍵</span> 互動調查 / 井旁穿梭時空</div>
+                        <div><span class="bg-stone-800 text-[9px] px-1 py-0.2 rounded text-white font-mono text-[11px]">長按空白鍵</span> 安全距離內穿牆驅魔充能</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- SPOOKY AMBIENT AND DIALOGUE AUDIO SYSTEM -->
+    <script>
+        let audioCtx = null;
+        let ambientOsc = null;
+        let ambientGain = null;
+
+        // Initialize Audio Context and Play Horror Drone
+        function initHorrorAudio() {
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Creepy background beating
+                ambientOsc = audioCtx.createOscillator();
+                let osc2 = audioCtx.createOscillator();
+                ambientGain = audioCtx.createGain();
+
+                ambientOsc.type = 'sawtooth';
+                ambientOsc.frequency.setValueAtTime(55, audioCtx.currentTime); // Low A hum
+                
+                osc2.type = 'sine';
+                osc2.frequency.setValueAtTime(55.5, audioCtx.currentTime); // Subtle beat frequency
+
+                // Filter to make it dark and muffled
+                let lowpass = audioCtx.createBiquadFilter();
+                lowpass.type = 'lowpass';
+                lowpass.frequency.setValueAtTime(120, audioCtx.currentTime);
+
+                ambientGain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+
+                ambientOsc.connect(lowpass);
+                osc2.connect(lowpass);
+                lowpass.connect(ambientGain);
+                ambientGain.connect(audioCtx.destination);
+
+                ambientOsc.start();
+                osc2.start();
+            } catch(e) {
+                console.log("Audio Context could not start: ", e);
+            }
+        }
+
+        // Play Walking Footstep Creak (Procedural)
+        let lastFootstepTime = 0;
+        function playFootstepSound() {
+            if (!audioCtx) return;
+            let now = audioCtx.currentTime;
+            if (now - lastFootstepTime < 0.35) return; // Debounce rate
+            lastFootstepTime = now;
+
+            try {
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(80, now);
+                osc.frequency.exponentialRampToValueAtTime(30, now + 0.12);
+                
+                // Wooden crackle noise mix
+                let noiseOsc = audioCtx.createOscillator();
+                let noiseGain = audioCtx.createGain();
+                noiseOsc.type = 'sawtooth';
+                noiseOsc.frequency.setValueAtTime(140, now);
+                noiseOsc.frequency.exponentialRampToValueAtTime(400, now + 0.05);
+
+                gain.gain.setValueAtTime(0.08, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+
+                noiseGain.gain.setValueAtTime(0.015, now);
+                noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+
+                let filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(250, now);
+
+                osc.connect(filter);
+                noiseOsc.connect(filter);
+                filter.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.start();
+                noiseOsc.start();
+                osc.stop(now + 0.15);
+                noiseOsc.stop(now + 0.15);
+            } catch (e) {}
+        }
+
+        // Muffled deep breathing sound when hiding in the closet
+        let breathInterval = null;
+        function startHidingBreathLoop() {
+            if (breathInterval) return;
+            breathInterval = setInterval(() => {
+                if (!isHiding || isGameOver) {
+                    stopHidingBreathLoop();
+                    return;
+                }
+                playBreathingSound();
+            }, 3000);
+        }
+
+        function stopHidingBreathLoop() {
+            if (breathInterval) {
+                clearInterval(breathInterval);
+                breathInterval = null;
+            }
+        }
+
+        function playBreathingSound() {
+            if (!audioCtx) return;
+            try {
+                let now = audioCtx.currentTime;
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(130, now);
+                osc.frequency.linearRampToValueAtTime(150, now + 0.8);
+                osc.frequency.linearRampToValueAtTime(110, now + 1.8);
+                
+                gain.gain.setValueAtTime(0.001, now);
+                gain.gain.linearRampToValueAtTime(0.04, now + 0.8);
+                gain.gain.linearRampToValueAtTime(0.001, now + 1.8);
+
+                let lowpass = audioCtx.createBiquadFilter();
+                lowpass.type = 'lowpass';
+                lowpass.frequency.setValueAtTime(180, now);
+
+                osc.connect(lowpass);
+                lowpass.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start();
+                osc.stop(now + 2.0);
+            } catch (e) {}
+        }
+
+        // 🌟 符咒施法嗡鳴聲系統 (Talisman Charging Sound)
+        let chargeOsc = null;
+        let chargeGain = null;
+
+        function startChargeHum() {
+            if (!audioCtx || chargeOsc) return;
+            try {
+                let now = audioCtx.currentTime;
+                chargeOsc = audioCtx.createOscillator();
+                chargeGain = audioCtx.createGain();
+                
+                chargeOsc.type = 'sine';
+                chargeOsc.frequency.setValueAtTime(220, now); // 起始 220Hz 低吟
+                
+                chargeGain.gain.setValueAtTime(0.01, now);
+                chargeGain.gain.linearRampToValueAtTime(0.18, now + 1.8); // 隨著施法逐漸大聲
+                
+                chargeOsc.connect(chargeGain);
+                chargeGain.connect(audioCtx.destination);
+                chargeOsc.start();
+            } catch(e){}
+        }
+
+        function updateChargeHumPitch(progress) {
+            if (chargeOsc && audioCtx) {
+                // 頻率隨淨化進度一路從 220Hz 攀升至 880Hz，营造神聖張力
+                chargeOsc.frequency.setValueAtTime(220 + (progress / 100) * 660, audioCtx.currentTime);
+            }
+        }
+
+        function stopChargeHum() {
+            if (chargeOsc) {
+                try {
+                    chargeOsc.stop();
+                    chargeOsc.disconnect();
+                } catch(e){}
+                chargeOsc = null;
+                chargeGain = null;
+            }
+        }
+
+        // Play Water Drop Sound Effect
+        function playWaterDropSound() {
+            if(!audioCtx) return;
+            try {
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(100, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1400, audioCtx.currentTime + 0.1);
+                osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.25);
+                
+                gain.gain.setValueAtTime(0.001, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.15, audioCtx.currentTime + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+
+                let filter = audioCtx.createBiquadFilter();
+                filter.type = 'highpass';
+                filter.frequency.setValueAtTime(500, audioCtx.currentTime);
+
+                osc.connect(filter);
+                filter.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.4);
+            } catch (e) {}
+        }
+
+        // Play terrifying dissonant female ghost screech
+        function playScreamerSound() {
+            if(!audioCtx) return;
+            try {
+                let now = audioCtx.currentTime;
+                for(let i = 0; i < 5; i++) {
+                    let osc = audioCtx.createOscillator();
+                    let gain = audioCtx.createGain();
+                    
+                    osc.type = (i % 2 === 0) ? 'sawtooth' : 'sine';
+                    let baseFreq = 650 + (i * 123);
+                    osc.frequency.setValueAtTime(baseFreq, now);
+                    osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.5, now + 0.2);
+                    osc.frequency.exponentialRampToValueAtTime(80, now + 1.2);
+                    
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+                    
+                    let bpf = audioCtx.createBiquadFilter();
+                    bpf.type = 'bandpass';
+                    bpf.frequency.setValueAtTime(1000, now);
+                    bpf.frequency.exponentialRampToValueAtTime(300, now + 1.2);
+
+                    osc.connect(bpf);
+                    bpf.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start();
+                    osc.stop(now + 1.3);
+                }
+            } catch(e){}
+        }
+
+        // Play gold chime temple bowl sound on successful purification exorcism
+        function playExorcismChime() {
+            if (!audioCtx) return;
+            try {
+                let now = audioCtx.currentTime;
+                let osc = audioCtx.createOscillator();
+                let oscHarmonic = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, now); // C5 ring
+                oscHarmonic.type = 'sine';
+                oscHarmonic.frequency.setValueAtTime(783.99, now); // G5 perfect harmonic
+
+                gain.gain.setValueAtTime(0.001, now);
+                gain.gain.exponentialRampToValueAtTime(0.4, now + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 3.0); 
+
+                let delay = audioCtx.createDelay();
+                delay.delayTime.setValueAtTime(0.15, now);
+                let delayGain = audioCtx.createGain();
+                delayGain.gain.setValueAtTime(0.35, now);
+
+                osc.connect(gain);
+                oscHarmonic.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                gain.connect(delay);
+                delay.connect(delayGain);
+                delayGain.connect(audioCtx.destination);
+
+                osc.start();
+                oscHarmonic.start();
+                osc.stop(now + 3.2);
+                oscHarmonic.stop(now + 3.2);
+            } catch (e) {}
+        }
+
+        // Heartbeat Metronome Loops for high tension
+        let heartbeatInterval = null;
+        function startHeartbeatLoop() {
+            if (heartbeatInterval) return;
+            heartbeatInterval = setInterval(() => {
+                if (isGameOver) {
+                    stopHeartbeatLoop();
+                    return;
+                }
+                playSingleHeartbeat();
+            }, 550); 
+        }
+
+        function stopHeartbeatLoop() {
+            if (heartbeatInterval) {
+                clearInterval(heartbeatInterval);
+                heartbeatInterval = null;
+            }
+        }
+
+        // Play Single Heartbeat
+        function playSingleHeartbeat() {
+            if(!audioCtx) return;
+            try {
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(65, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(45, audioCtx.currentTime + 0.12);
+                
+                gain.gain.setValueAtTime(0.35, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.45);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.5);
+            } catch(e){}
+        }
+
+        // Play Timeline Swap Sweeping SFX
+        function playTimelineWarpSound() {
+            if(!audioCtx) return;
+            try {
+                let osc = audioCtx.createOscillator();
+                let filter = audioCtx.createBiquadFilter();
+                let gain = audioCtx.createGain();
+
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(60, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.6);
+
+                filter.type = 'bandpass';
+                filter.Q.setValueAtTime(10, audioCtx.currentTime);
+                filter.frequency.setValueAtTime(100, audioCtx.currentTime);
+                filter.frequency.exponentialRampToValueAtTime(1500, audioCtx.currentTime + 0.5);
+
+                gain.gain.setValueAtTime(0.01, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.2, audioCtx.currentTime + 0.2);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.7);
+
+                osc.connect(filter);
+                filter.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.8);
+            } catch(e){}
+        }
+
+        // Play Item Click SFX
+        function playClickSound() {
+            if(!audioCtx) return;
+            try {
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(80, audioCtx.currentTime + 0.05);
+                
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.2);
+            } catch(e){}
+        }
+
+        // Play pain / damage SFX
+        function playHurtSound() {
+            if(!audioCtx) return;
+            try {
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(180, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.4);
+                
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.4);
+            } catch (e) {}
+        }
+    </script>
+
+    <!-- CORE RPG ENGINE CODE -->
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Set baseline canvas resolution
+        canvas.width = 800;
+        canvas.height = 600;
+
+        // Tile configuration
+        const TILE_SIZE = 48;
+        const MAP_COLS = 20;
+        const MAP_ROWS = 15;
+
+        // Gameplay Era Enum
+        const ERAS = {
+            MODERN: 'modern',
+            PAST: 'past'
+        };
+
+        // Game state
+        let currentChapter = 1; // 1 = Exterior (Time-travel), 2 = Mansion Interior (Chase!)
+        let currentEra = ERAS.MODERN;
+        let isWarping = false;
+        let sanity = 100;
+        let hp = 100;
+        let battery = 100;
+        let isGameOver = false;
+        
+        // 🌟 符咒施法與女鬼狂化、血腥場景狀態變數
+        let ghostActive = false;
+        let ghostIntroTimer = 0; 
+        let isHiding = false;
+        let hasTalisman = false;
+        let isInvincible = false;
+        let invincibilityTimer = 0;
+        
+        let isBloodyAtmosphere = false;  // 🌟 小蓮死後 1930 年代是否變為血腥驚悚模樣
+
+        let isChargingTalisman = false;  // 是否正在施法唸咒
+        let talismanCharge = 0;          // 當前淨化施法進度 (0 ~ 100)
+        const talismanRange = 100;       // 🌟 提升符咒有效發揮半徑至 100 (約兩格地磚)，確保過牆攻擊更流暢
+
+        let ghostFrenzy = false;         // 女鬼是否正處於免疫符咒的狂暴狀態
+        let ghostFrenzyTimer = 0;        // 狂暴剩餘時長 (幀數)
+        let ghostFrenzyCooldown = 0;     // 距離下一次週期狂化的時間 (幀數)
+        
+        const ghost = {
+            x: 0,
+            y: 0,
+            width: 36,
+            height: 36,
+            speed: 1.4, 
+            animTimer: 0
+        };
+
+        // Player configuration
+        const player = {
+            x: 80,
+            y: 500,
+            width: 32,
+            height: 32,
+            speed: 4.8, // 🌟 預設速度改回輕快經典的 4.8
+            dirX: 0,
+            dirY: 0,
+            angle: Math.PI * 1.5, // pointing up initially
+            animFrame: 0,
+            animTimer: 0
+        };
+
+        // Camera positioning offset
+        const camera = {
+            x: 0,
+            y: 0
+        };
+
+        // 🌟 降低環境水滴低落聲頻率 (改為 25 秒偵測一次，20% 機率)
+        let randomSpookTimer = setInterval(() => {
+            if (!isGameOver && Math.random() < 0.2) {
+                playWaterDropSound();
+                showNotification("遠處傳來若有似無的水滴落地聲...");
+            }
+        }, 25000);
+
+        // Inventory system
+        const inventory = {
+            flashlight: { name: '電量充足的手電筒', desc: '文史社配備的強光手電筒，是黑暗中唯一的支柱。', icon: '🔦' },
+        };
+
+        // Procedural map definition
+        const mapData = {
+            [ERAS.MODERN]: [
+                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                [1,1,2,2,2,2,3,2,2,2,2,2,2,2,1,1,1,1,1,1],
+                [1,1,2,0,0,0,0,0,0,0,2,2,2,2,1,1,1,1,1,1],
+                [1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1],
+                [1,1,0,0,0,0,1,1,1,1,0,0,0,0,1,1,1,1,1,1], 
+                [1,1,0,0,0,1,1,1,1,1,1,0,0,0,1,1,1,1,1,1],
+                [1,0,0,0,0,1,1,4,0,1,1,0,0,0,1,1,1,1,1,1], 
+                [1,0,0,0,0,0,1,0,0,1,0,0,0,0,1,1,1,1,1,1], 
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1],
+                [1,5,5,5,5,5,5,5,3,5,5,5,5,5,1,1,1,1,1,1], 
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1], 
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1], 
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1], 
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1], 
+                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+            ],
+            [ERAS.PAST]: [
+                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                // 🌟 對照 image_0c2168.png 移除無實際用途之大門，將 [1][6] 原先的 3 替換為壁面磚牆 2
+                [1,1,2,2,2,2,2,2,2,2,2,2,2,2,1,1,1,1,1,1], 
+                [1,1,2,0,0,0,0,0,0,0,2,2,2,2,1,1,1,1,1,1],
+                [1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1],
+                [1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1], 
+                [1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1],
+                [1,0,0,0,0,0,0,4,0,0,0,0,0,0,1,1,1,1,1,1], 
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1], 
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1], 
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1], 
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1], 
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1], 
+                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+            ],
+            mansion_interior: [
+                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                [1,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,1],
+                [1,0,1,1,1,0,1,0,1,1,1,1,0,1,0,1,1,1,0,1], 
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,0,0,1,1,1,1,1,0,0,0,0,1,1,1,1,1,0,0,1],
+                [1,0,0,1,0,0,0,1,0,0,0,0,1,0,0,0,1,0,0,1],
+                [1,0,0,1,0,0,0,1,0,0,0,0,1,0,0,0,1,0,0,1], 
+                [1,0,0,1,1,0,1,1,0,0,0,0,1,1,0,1,1,0,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,1,1,0,0,0,0,1,1,1,1,1,1,0,0,0,0,1,1,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,1,1,1,1,1,1,1,1,3,3,1,1,1,1,1,1,1,1,1], 
+                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+            ]
+        };
+
+        // Interactive entities with triggers and dialogue scripts
+        const entities = [
+            {
+                id: 'fence_gate',
+                x: 8 * TILE_SIZE, 
+                y: 9 * TILE_SIZE,
+                width: TILE_SIZE,
+                height: TILE_SIZE,
+                era: ERAS.MODERN,
+                solved: false,
+                icon: '🚧',
+                dialogue: [
+                    { speaker: '阿誠', avatar: '🧑‍🎓', text: '前庭鐵絲網被緊緊地鎖上了，上面纏繞著雜草與鐵絲。' },
+                    { speaker: '阿誠', avatar: '🧑‍🎓', text: '如果有一把「剪線鉗」或者「鐵剪」，應該就能剪開進去。' }
+                ],
+                solvedDialogue: [
+                    { speaker: '阿誠', avatar: '🧑', text: '「卡嚓！」我用剪線鉗剪開了生鏽的鐵網。可以進去了！' }
+                ]
+            },
+            {
+                id: 'clipper_box',
+                x: 17 * TILE_SIZE,
+                y: 11 * TILE_SIZE,
+                width: TILE_SIZE,
+                height: TILE_SIZE,
+                era: ERAS.MODERN,
+                solved: false,
+                icon: '🧰',
+                dialogue: [
+                    { speaker: '阿誠', avatar: '🧑‍🎓', text: '這是一旁荒廢「鬼屋咖啡」留下的雜物工具箱。' },
+                    { speaker: '阿誠', avatar: '🧑', text: '我翻出了一把鏽跡斑斑但還算鋒利的「剪線鉗」！' }
+                ],
+                solvedDialogue: [
+                    { speaker: '阿誠', avatar: '🧑‍🎓', text: '工具箱空空如也。裡面只剩一堆生鏽的螺絲。' }
+                ]
+            },
+            {
+                id: 'the_well',
+                x: 7 * TILE_SIZE,
+                y: 6 * TILE_SIZE,
+                width: TILE_SIZE * 1.5,
+                height: TILE_SIZE * 1.5,
+                solved: false,
+                isGlobal: true, 
+                icon: '🕳️',
+                dialogueModern: [
+                    { speaker: '阿誠', avatar: '🧑', text: '這就是傳說中那口逼死婢女的「劉家枯井」……' },
+                    { speaker: '系統提示', avatar: '🔔', text: '當你往下凝視時，冰冷的空氣撲面而來。井底傳來了奇特的水滴聲……「滴答」……' },
+                    { speaker: '阿誠', avatar: '😱', text: '等等！水滴聲？！這是一口枯井啊！我的頭好暈……意識……開始模糊……' }
+                ],
+                dialoguePast: [
+                    { speaker: '阿誠', avatar: '🧑', text: '1930 年代的水井！這裡注滿了清澈的井水，在倒影中甚至能看到我身穿現代衣服的樣子。' },
+                    { speaker: '阿誠', avatar: '🧑', text: '這口井，就是連接兩個時空的玄機。' }
+                ]
+            },
+            {
+                id: 'mansion_door_modern',
+                x: 6 * TILE_SIZE,
+                y: 1 * TILE_SIZE,
+                width: TILE_SIZE,
+                height: TILE_SIZE,
+                era: ERAS.MODERN,
+                solved: false,
+                icon: '🚪',
+                dialogue: [
+                    { speaker: '阿誠', avatar: '🧑‍🎓', text: '洋樓的主正門。被沈重的古銅鎖給牢牢鎖住，門板上佈滿了青苔。' },
+                    { speaker: '阿誠', avatar: '🧑‍🎓', text: '聽老一輩說，鑰匙交給了當年沈得屋主信任的一名婢女保管。' }
+                ],
+                solvedDialogue: [
+                    { speaker: '阿誠', avatar: '阿誠', text: '我掏出從 1930 年代拿回來的古樸鑰匙，插進鎖孔裡……「喀噠」一聲！' },
+                    { speaker: '阿誠', avatar: '😱', text: '鎖開了！沈重的木大門自行緩緩向內推開，露出一條黑黢黢、深不可測的幽深走廊……' },
+                    { speaker: '阿誠', avatar: '🧑‍🎓', text: '「大古……你一定要在裡面平安無事啊！」我深吸一口氣，踏進了洋樓的大廳……' }
+                ]
+            },
+            {
+                id: 'ghost_lian_past',
+                x: 13 * TILE_SIZE,
+                y: 4 * TILE_SIZE,
+                width: TILE_SIZE,
+                height: TILE_SIZE,
+                era: ERAS.PAST,
+                solved: false,
+                icon: '👩',
+                dialogue: [
+                    { speaker: '小蓮', avatar: '👧', text: '（一臉慌張的年輕婢女）嗚嗚……該怎麼辦……女主人要是發現這把鑰匙不見了，一定會打死我的……' },
+                    { speaker: '阿誠', avatar: '🧑', text: '請問……你是小蓮嗎？有什麼我可以幫忙的？' },
+                    { speaker: '小蓮', avatar: '👧', text: '咦？！你衣服的樣式好奇怪……難、難道你是少爺請來的客人嗎？' },
+                    { speaker: '小蓮', avatar: '👧', text: '那求求你幫我保管這把「洋樓古樸鑰匙」吧！女主人嫉妒我，正瘋狂搜查我的房間，若被她發現，我就大禍臨頭了！' },
+                    { speaker: '小蓮', avatar: '👧', text: '（她偷偷塞給你一把散發黃銅光澤的鑰匙）給你……拿著它快逃……！' }
+                ],
+                solvedDialogue: [
+                    { speaker: '小蓮的殘影', avatar: '👧', text: '「謝謝你，奇裝異服的客人。這把鑰匙……交給你了……」' }
+                ]
+            }
+        ];
+
+        // Active dialogue tracking state
+        let currentDialogue = null;
+        let dialogueIndex = 0;
+        let isTyping = false;
+        let typedText = "";
+        let typeInterval = null;
+
+        // 🌟 核心防護：確保帶有正確 id="toastText" 的標籤結構 100% 存在於 DOM 中
+        function showNotification(msg) {
+            const toast = document.getElementById('gameToast');
+            const toastText = document.getElementById('toastText');
+            if (toastText) {
+                toastText.textContent = msg;
+            }
+            if (toast) {
+                toast.classList.remove('opacity-0');
+                toast.classList.add('opacity-100');
+                if (window.toastTimeout) clearTimeout(window.toastTimeout);
+                window.toastTimeout = setTimeout(() => {
+                    toast.classList.remove('opacity-100');
+                    toast.classList.add('opacity-0');
+                }, 4000);
+            }
+        }
+
+        // Helper to check if player is near any interactive entity
+        function getNearbyInteractable() {
+            const reach = 40;
+            for (let e of entities) {
+                if (e.isGlobal || e.chapter === currentChapter || (!e.chapter && e.era === currentEra)) {
+                    const dist = Math.hypot((player.x + player.width/2) - (e.x + e.width/2), (player.y + player.height/2) - (e.y + e.height/2));
+                    if (dist < reach + 20) {
+                        return e;
+                    }
+                }
+            }
+            return null;
+        }
+
+        // Keyboard tracking
+        const keys = {};
+
+        window.addEventListener('keydown', (e) => {
+            keys[e.key.toLowerCase()] = true;
+            if (e.key === 'Shift') keys['shift'] = true;
+            
+            // Advance dialogue with any key if open
+            if (currentDialogue) {
+                e.preventDefault();
+                advanceDialogue();
+                return;
+            }
+
+            // 🌟 鍵盤長按與一鍵穿梭判定 (安全防禦邏輯)
+            if (e.key === ' ' || e.key.toLowerCase() === 'e') {
+                const nearEnt = getNearbyInteractable();
+                if (nearEnt) {
+                    // 🌟 首度互動與後續穿梭的精確分離：只有在已經對話解密過後（solved: true），按空白鍵才直接穿梭
+                    if (nearEnt.id === 'the_well' && currentChapter === 1) {
+                        const well = entities.find(ent => ent.id === 'the_well');
+                        if (well && well.solved) {
+                            tryWarpTimeline(); // 一鍵穿梭
+                        } else {
+                            triggerAction(); // 首次調查古井，觸發文字對話
+                        }
+                    } else {
+                        triggerAction(); // 鑽入衣櫃 / 調查其餘實體
+                    }
+                } else if (currentChapter === 2 && ghostActive && hasTalisman && !isHiding) {
+                    isChargingTalisman = true;
+                } else {
+                    triggerAction();
+                }
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            keys[e.key.toLowerCase()] = false;
+            if (e.key === 'Shift') keys['shift'] = false;
+            
+            // 🌟 鍵盤釋放判定 (中斷施法進度)
+            if (e.key === ' ' || e.key.toLowerCase() === 'e') {
+                isChargingTalisman = false;
+                talismanCharge = 0;
+                stopChargeHum();
+            }
+        });
+
+        // Virtual joystick handle
+        let mobileMoveInterval = null;
+        function triggerMobileMove(direction) {
+            keys['w'] = direction === 'up';
+            keys['s'] = direction === 'down';
+            keys['a'] = direction === 'left';
+            keys['d'] = direction === 'right';
+        }
+
+        function stopMobileMove() {
+            keys['w'] = false;
+            keys['s'] = false;
+            keys['a'] = false;
+            keys['d'] = false;
+        }
+
+        // 🌟 手機觸控長按與一鍵穿梭控制
+        function triggerInteractStart() {
+            if (currentDialogue) {
+                advanceDialogue();
+                return;
+            }
+            const nearEnt = getNearbyInteractable();
+            if (nearEnt) {
+                if (nearEnt.id === 'the_well' && currentChapter === 1) {
+                    const well = entities.find(ent => ent.id === 'the_well');
+                    if (well && well.solved) {
+                        tryWarpTimeline();
+                    } else {
+                        triggerAction();
+                    }
+                } else {
+                    triggerAction();
+                }
+            } else if (currentChapter === 2 && ghostActive && hasTalisman && !isHiding) {
+                isChargingTalisman = true;
+            } else {
+                triggerAction();
+            }
+        }
+
+        function triggerInteractEnd() {
+            isChargingTalisman = false;
+            talismanCharge = 0;
+            stopChargeHum();
+        }
+
+        // Camera helper
+        function updateCamera() {
+            camera.x = player.x - canvas.width / 2 + player.width / 2;
+            camera.y = player.y - canvas.height / 2 + player.height / 2;
+
+            // Clamps
+            const maxCamX = MAP_COLS * TILE_SIZE - canvas.width;
+            const maxCamY = MAP_ROWS * TILE_SIZE - canvas.height;
+            camera.x = Math.max(0, Math.min(camera.x, maxCamX));
+            camera.y = Math.max(0, Math.min(camera.y, maxCamY));
+        }
+
+        // Check if a point is solid/wall
+        function isSolid(x, y) {
+            const col = Math.floor(x / TILE_SIZE);
+            const row = Math.floor(y / TILE_SIZE);
+
+            if (col < 0 || col >= MAP_COLS || row < 0 || row >= MAP_ROWS) return true;
+
+            if (currentChapter === 2) {
+                const tile = mapData.mansion_interior[row][col];
+                return tile === 1 || tile === 3;
+            } else {
+                const tile = mapData[currentEra][row][col];
+                if (tile === 1 || tile === 2 || tile === 5) {
+                    return true; 
+                }
+                if (tile === 3 && currentEra === ERAS.MODERN && !entities.find(e => e.id === 'fence_gate').solved) {
+                    return true; 
+                }
+                return false;
+            }
+        }
+
+        // Handle player movement with shift sprint
+        function movePlayer() {
+            if (currentDialogue || isWarping) return;
+
+            if (isHiding && (keys['w'] || keys['s'] || keys['a'] || keys['d'] || keys['arrowup'] || keys['arrowdown'] || keys['arrowleft'] || keys['arrowright'])) {
+                isHiding = false;
+                showNotification("你推開櫃門衝了出來！");
+                playClickSound();
+                stopHidingBreathLoop();
+            }
+
+            player.dirX = 0;
+            player.dirY = 0;
+
+            if (keys['w'] || keys['arrowup']) player.dirY = -1;
+            if (keys['s'] || keys['arrowdown']) player.dirY = 1;
+            if (keys['a'] || keys['arrowleft']) player.dirX = -1;
+            if (keys['d'] || keys['arrowright']) player.dirX = 1;
+
+            if (player.dirX !== 0 || player.dirY !== 0) {
+                const length = Math.sqrt(player.dirX * player.dirX + player.dirY * player.dirY);
+                
+                // 🌟【重要更新】：Shift 鍵奔跑衝刺功能 (Shift 鍵按住時為 7.0 速度，平常為 4.8 速度)
+                const baseSpeed = keys['shift'] ? 7.0 : 4.8;
+                const dx = (player.dirX / length) * baseSpeed;
+                const dy = (player.dirY / length) * baseSpeed;
+
+                let newX = player.x + dx;
+                let newY = player.y + dy;
+
+                const offset = 4;
+                if (!isSolid(newX + offset, player.y + offset) && 
+                    !isSolid(newX + player.width - offset, player.y + offset) &&
+                    !isSolid(newX + offset, player.y + player.height - offset) &&
+                    !isSolid(newX + player.width - offset, player.y + player.height - offset)) {
+                    player.x = newX;
+                }
+
+                if (!isSolid(player.x + offset, newY + offset) && 
+                    !isSolid(player.x + player.width - offset, newY + offset) &&
+                    !isSolid(player.x + offset, newY + player.height - offset) &&
+                    !isSolid(player.x + player.width - offset, newY + player.height - offset)) {
+                    player.y = newY;
+                }
+
+                player.angle = Math.atan2(dy, dx);
+
+                if (currentChapter === 2) {
+                    playFootstepSound();
+                }
+
+                player.animTimer++;
+                if (player.animTimer > 8) {
+                    player.animFrame = (player.animFrame + 1) % 4;
+                    player.animTimer = 0;
+                }
+
+                if (currentEra === ERAS.MODERN) {
+                    battery = Math.max(0, battery - 0.015);
+                    const batteryBar = document.getElementById('batteryBar');
+                    if (batteryBar) {
+                        batteryBar.style.width = battery + "%";
+                        if (battery < 20) {
+                            batteryBar.className = "h-full bg-red-600 animate-pulse";
+                        }
+                    }
+                }
+            }
+        }
+
+        // Dynamic light overlay renderer
+        function drawLightingOverlay() {
+            const maskCanvas = document.createElement('canvas');
+            maskCanvas.width = canvas.width;
+            maskCanvas.height = canvas.height;
+            const maskCtx = maskCanvas.getContext('2d');
+
+            // 🌟 提高能見度，將遮罩最大黑暗限制度降為 0.92，即便手電筒沒電依然可以看到大廳輪廓
+            const darkIntensity = Math.min(0.92, 0.92 - (battery / 400));
+            
+            if (currentChapter === 2) {
+                // Eerie flickering reddish-black lighting in Chapter 2
+                const glitchIntensity = (sanity < 30 && Math.random() < 0.1) ? 0.75 : darkIntensity;
+                maskCtx.fillStyle = `rgba(5, 1, 1, ${glitchIntensity})`;
+                maskCtx.fillRect(0, 0, canvas.width, canvas.height);
+            } else if (currentEra === ERAS.MODERN) {
+                maskCtx.fillStyle = `rgba(3, 4, 10, ${darkIntensity})`;
+                maskCtx.fillRect(0, 0, canvas.width, canvas.height);
+            } else {
+                // past era has a cozy sunset filter, but turns bloody if isBloodyAtmosphere is true
+                if (isBloodyAtmosphere) {
+                    maskCtx.fillStyle = 'rgba(125, 0, 0, 0.2)';
+                } else {
+                    maskCtx.fillStyle = 'rgba(120, 70, 20, 0.25)';
+                }
+                maskCtx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Warm ambient vignette
+                let screenCenterGlow = maskCtx.createRadialGradient(canvas.width/2, canvas.height/2, 200, canvas.width/2, canvas.height/2, 600);
+                screenCenterGlow.addColorStop(0, 'rgba(0, 0, 0, 0.0)');
+                if (isBloodyAtmosphere) {
+                    screenCenterGlow.addColorStop(1, 'rgba(80, 0, 0, 0.55)');
+                } else {
+                    screenCenterGlow.addColorStop(1, 'rgba(0, 0, 0, 0.4)');
+                }
+                maskCtx.fillStyle = screenCenterGlow;
+                maskCtx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.drawImage(maskCanvas, 0, 0);
+                return;
+            }
+
+            maskCtx.save();
+            maskCtx.globalCompositeOperation = 'destination-out';
+
+            // Cut out flashlight cone
+            if (!isHiding) {
+                const pScreenX = player.x - camera.x + player.width / 2;
+                const pScreenY = player.y - camera.y + player.height / 2;
+
+                const sanityMod = Math.max(0.5, sanity / 100);
+                const flickerFactor = (sanity < 30) ? (0.82 + Math.random() * 0.18) : 1.0;
+                // 🌟 加寬手電筒光照範圍 (230 -> 260) 提升操作流暢度
+                const fRange = Math.max(50, 260 * (battery / 100) * sanityMod * flickerFactor);
+                const fAngleWidth = Math.PI / 4.0;
+
+                let innerGlow = maskCtx.createRadialGradient(pScreenX, pScreenY, 0, pScreenX, pScreenY, 45);
+                innerGlow.addColorStop(0, 'rgba(0, 0, 0, 1.0)');
+                innerGlow.addColorStop(1, 'rgba(0, 0, 0, 0.0)');
+                maskCtx.fillStyle = innerGlow;
+                maskCtx.beginPath();
+                maskCtx.arc(pScreenX, pScreenY, 45, 0, Math.PI * 2);
+                maskCtx.fill();
+
+                let flashlightGrad = maskCtx.createRadialGradient(pScreenX, pScreenY, 15, pScreenX + Math.cos(player.angle) * (fRange/2), pScreenY + Math.sin(player.angle) * (fRange/2), fRange);
+                flashlightGrad.addColorStop(0, 'rgba(0, 0, 0, 1.0)');
+                flashlightGrad.addColorStop(0.7, 'rgba(0, 0, 0, 0.55)');
+                flashlightGrad.addColorStop(1, 'rgba(0, 0, 0, 0.0)');
+
+                maskCtx.fillStyle = flashlightGrad;
+                maskCtx.beginPath();
+                maskCtx.moveTo(pScreenX, pScreenY);
+                maskCtx.arc(pScreenX, pScreenY, fRange, player.angle - fAngleWidth, player.angle + fAngleWidth);
+                maskCtx.lineTo(pScreenX, pScreenY);
+                maskCtx.fill();
+            }
+
+            // 🌟 狂暴光罩剪裁：當女鬼狂暴時，紅光範圍劇烈擴大，顫動刺眼
+            if (currentChapter === 2 && ghostActive) {
+                const gScreenX = ghost.x - camera.x + 18;
+                const gScreenY = ghost.y - camera.y + 18;
+                
+                maskCtx.globalCompositeOperation = 'source-over'; 
+                const glowSize = ghostFrenzy ? 160 : 120;
+                const glowAlpha = ghostFrenzy ? (0.55 + Math.random() * 0.15) : 0.3;
+                
+                let ghostGlow = maskCtx.createRadialGradient(gScreenX, gScreenY, 0, gScreenX, gScreenY, glowSize);
+                ghostGlow.addColorStop(0, `rgba(${ghostFrenzy ? '255, 0, 0' : '180, 10, 10'}, ${glowAlpha})`);
+                ghostGlow.addColorStop(0.4, `rgba(${ghostFrenzy ? '180, 0, 0' : '120, 5, 5'}, ${glowAlpha * 0.5})`);
+                ghostGlow.addColorStop(1, 'rgba(0, 0, 0, 0.0)');
+                maskCtx.fillStyle = ghostGlow;
+                maskCtx.beginPath();
+                maskCtx.arc(gScreenX, gScreenY, glowSize, 0, Math.PI * 2);
+                maskCtx.fill();
+            }
+
+            maskCtx.restore();
+            ctx.drawImage(maskCanvas, 0, 0);
+        }
+
+        // Start a dialogue sequence
+        function triggerDialogue(script) {
+            isChargingTalisman = false;
+            talismanCharge = 0;
+            stopChargeHum();
+
+            currentDialogue = script;
+            dialogueIndex = 0;
+            const dialoguePanel = document.getElementById('dialoguePanel');
+            if (dialoguePanel) {
+                dialoguePanel.style.display = 'flex';
+            if (selectedDevice === 'mobile') {
+                const ml = document.getElementById('mobileControlLayer');
+                if (ml) ml.style.visibility = 'hidden';
+                dialoguePanel.style.zIndex = '80';
+                dialoguePanel.style.position = 'fixed';
+                dialoguePanel.style.bottom = '0';
+                dialoguePanel.style.left = '0';
+                dialoguePanel.style.right = '0';
+                dialoguePanel.style.borderRadius = '0';
+                dialoguePanel.style.borderTop = '2px solid rgba(146,64,14,0.8)';
+                dialoguePanel.style.background = 'rgba(10,8,8,0.99)';
+            }
+            }
+            renderDialogueLine();
+        }
+
+        // Advance or skip dialogue lines
+        function advanceDialogue() {
+            if (isTyping) {
+                isTyping = false;
+                clearInterval(typeInterval);
+                const textEl = document.getElementById('dialogueText');
+                if (textEl && currentDialogue && currentDialogue[dialogueIndex]) {
+                    textEl.textContent = currentDialogue[dialogueIndex].text;
+                }
+                return;
+            }
+
+            dialogueIndex++;
+            if (dialogueIndex >= currentDialogue.length) {
+                currentDialogue = null;
+                const dialoguePanel = document.getElementById('dialoguePanel');
+                if (dialoguePanel) {
+                    dialoguePanel.style.display = 'none';
+            if (selectedDevice === 'mobile') {
+                const ml = document.getElementById('mobileControlLayer');
+                if (ml) ml.style.visibility = 'visible';
+            }
+                }
+                checkPostDialogueEvents();
+            } else {
+                renderDialogueLine();
+            }
+        }
+
+        // Render one dialogue line with typing effect
+        function renderDialogueLine() {
+            if (!currentDialogue) return;
+            const line = currentDialogue[dialogueIndex];
+            const speakerEl = document.getElementById('dialogueSpeaker');
+            const avatarEl = document.getElementById('dialogueAvatar');
+            const textEl = document.getElementById('dialogueText');
+
+            if (speakerEl) speakerEl.textContent = line.speaker;
+            if (avatarEl) avatarEl.textContent = line.avatar;
+            
+            const fullText = line.text;
+            typedText = "";
+            isTyping = true;
+            
+            let charIdx = 0;
+            clearInterval(typeInterval);
+            
+            typeInterval = setInterval(() => {
+                typedText += fullText.charAt(charIdx);
+                if (textEl) textEl.textContent = typedText;
+                charIdx++;
+                
+                if (charIdx >= fullText.length) {
+                    isTyping = false;
+                    clearInterval(typeInterval);
+                }
+            }, 30);
+        }
+
+        // Look at current selection inventory items
+        function showItemDesc(id) {
+            playClickSound();
+            const desc = inventory[id] ? inventory[id].desc : '一個奇怪的舊物件。';
+            const descEl = document.getElementById('itemDescription');
+            if (descEl) descEl.textContent = desc;
+        }
+
+        // Add item to custom sidebar grid
+        function addToInventory(id, name, desc, icon) {
+            if (inventory[id]) return; 
+
+            inventory[id] = { name, desc, icon };
+            
+            const grid = document.getElementById('inventoryGrid');
+            if (grid) {
+                const itemHTML = `
+                    <div class="aspect-square bg-stone-900 border border-stone-700 rounded-lg flex flex-col items-center justify-center p-1 cursor-help hover:border-amber-700 relative group" id="inv_${id}" onclick="showItemDesc('${id}')">
+                        <span class="text-lg">${icon}</span>
+                        <span class="text-[9px] text-gray-400 mt-1">${name}</span>
+                        <div class="absolute scale-0 group-hover:scale-100 transition-transform bg-black text-stone-300 text-[10px] p-2 rounded border border-stone-700 -top-16 left-0 right-0 z-30 pointer-events-none">
+                            ${desc}
+                        </div>
+                    </div>
+                `;
+                grid.insertAdjacentHTML('beforeend', itemHTML);
+            }
+            showNotification(`獲得關鍵道具：【${name}】！`);
+        }
+
+        // Trigger contextual interactive scripts
+        function triggerAction() {
+            if (currentDialogue || isWarping) return;
+
+            // 第一章調查與交互
+            let nearbyEntity = null;
+            const reach = 40;
+
+            for (let e of entities) {
+                if (e.isGlobal || e.chapter === currentChapter || (!e.chapter && e.era === currentEra)) {
+                    const dist = Math.hypot((player.x + player.width/2) - (e.x + e.width/2), (player.y + player.height/2) - (e.y + e.height/2));
+                    if (dist < reach + 20) {
+                        nearbyEntity = e;
+                        break;
+                    }
+                }
+            }
+
+            if (nearbyEntity) {
+                handleInteraction(nearbyEntity);
+            } else {
+                showNotification("這裡空空的，沒發現可調查的痕跡。");
+            }
+        }
+
+        // Handle logical outcome of interactables
+        let lastTriggeredId = null;
+        function handleInteraction(ent) {
+            lastTriggeredId = ent.id;
+
+            if (ent.id === 'clipper_box') {
+                if (!ent.solved) {
+                    triggerDialogue(ent.dialogue);
+                } else {
+                    triggerDialogue(ent.solvedDialogue);
+                }
+            } 
+            else if (ent.id === 'fence_gate') {
+                if (!ent.solved) {
+                    if (inventory['clipper']) {
+                        triggerDialogue(ent.solvedDialogue);
+                        ent.solved = true;
+                        
+                        const qIconFence = document.getElementById('qIcon_fence');
+                        const questFence = document.getElementById('quest_fence');
+                        if (qIconFence && questFence) {
+                            qIconFence.className = "fa-regular fa-square-check text-green-500 mt-0.5";
+                            questFence.className = "flex items-start gap-1.5 line-through text-stone-600";
+                        }
+                    } else {
+                        triggerDialogue(ent.dialogue);
+                    }
+                } else {
+                    showNotification("鐵絲網已被剪開，可以自由穿過。");
+                }
+            }
+            else if (ent.id === 'the_well') {
+                if (currentEra === ERAS.MODERN) {
+                    triggerDialogue(ent.dialogueModern);
+                } else {
+                    triggerDialogue(ent.dialoguePast);
+                }
+            }
+            else if (ent.id === 'ghost_lian_past') {
+                if (!ent.solved) {
+                    triggerDialogue(ent.dialogue);
+                } else {
+                    triggerDialogue(ent.solvedDialogue);
+                }
+            }
+            else if (ent.id === 'mansion_door_modern') {
+                if (!ent.solved) {
+                    if (inventory['ancient_key']) {
+                        triggerDialogue(ent.solvedDialogue);
+                        ent.solved = true;
+                    } else {
+                        triggerDialogue(ent.dialogue);
+                    }
+                } else {
+                    showNotification("洋樓大門已經被開啟了。");
+                }
+            }
+            else if (ent.id === 'creepy_portrait') {
+                if (!ent.solved) {
+                    triggerDialogue(ent.dialogue);
+                } else {
+                    showNotification("流著血淚的畫像……女主人像是死死地盯著每一個人。");
+                }
+            }
+            else if (ent.id === 'mansion_closet_1' || ent.id === 'mansion_closet_2') {
+                if (!isHiding) {
+                    isHiding = true;
+                    showNotification("🙈 你成功鑽進了沉重的紅木衣櫃中，屏住呼吸。");
+                    playClickSound();
+                    startHidingBreathLoop(); 
+                    triggerDialogue(ent.dialogue);
+                } else {
+                    isHiding = false;
+                    showNotification("🚪 你推開衣櫃門，回到了漆黑的走廊上。");
+                    playClickSound();
+                    stopHidingBreathLoop();
+                }
+            }
+            else if (ent.id === 'dusty_vase_left') {
+                triggerDialogue(ent.dialogue);
+            }
+            else if (ent.id === 'dusty_vase_right') {
+            if (!ent.solved) {
+                triggerDialogue(ent.dialogue);
+            } else {
+                showNotification("空空的花瓶，上面的黃色符咒已經被你撕下來了。");
+            }
+        }
+    }
+
+    // 🌟 女主人畫像 Jumpscare 驚嚇事件
+    function triggerJumpscare() {
+        playScreamerSound();
+        const overlay = document.getElementById('jumpscareOverlay');
+        if (overlay) {
+            overlay.classList.remove('hidden');
+            sanity = Math.max(0, sanity - 20); // 扣減理智
+            const sanityBar = document.getElementById('sanityBar');
+            if (sanityBar) {
+                sanityBar.style.width = sanity + "%";
+            }
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+            }, 1200);
+        }
+    }
+
+    // 🌟 小蓮 Jumpscare 突變死狀與第一章大院變血腥場景
+    function triggerXiaolianJumpscare() {
+        playScreamerSound();
+            
+            const overlay = document.getElementById('jumpscareOverlay');
+            if (overlay) {
+                overlay.classList.remove('hidden');
+                const jumpscareIcon = overlay.querySelector('span.animate-ping');
+                const jumpscareTitle = overlay.querySelector('.gothic-title');
+                
+                if (jumpscareIcon) jumpscareIcon.textContent = '💀';
+                if (jumpscareTitle) jumpscareTitle.textContent = '小蓮：救 救 我 . . .';
+                
+                sanity = Math.max(10, sanity - 25);
+                
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                    if (jumpscareIcon) jumpscareIcon.textContent = '👹';
+                    if (jumpscareTitle) jumpscareTitle.textContent = '怨 靈 襲 來';
+                    
+                    isBloodyAtmosphere = true;
+                    const lian = entities.find(e => e.id === 'ghost_lian_past');
+                    if (lian) {
+                        lian.icon = '💀🩸';
+                    }
+
+                    triggerDialogue([
+                        { speaker: '阿誠', avatar: '😱', text: '哇啊啊啊！剛才發生了什麼？！小蓮的臉突然變得支離破碎，眼睛不斷湧出血水！' },
+                        { speaker: '阿誠', avatar: '🧟‍♀️', text: '（地上的血水正緩緩滲透出來……原本明媚的大院瞬間被一股刺鼻的血腥味 and 猩紅死氣給籠罩了……）' },
+                        { speaker: '阿誠', avatar: '😱', text: '眨眼間她就不見了……地上只留下了這把黃銅鑰匙。這座古厝的怨念果然非同尋常……我必須趕快拿到鑰匙，回到枯井旁回到現代！' }
+                    ]);
+                }, 1200);
+            }
+        }
+
+        // Event callbacks triggered when dialogues conclude
+        function checkPostDialogueEvents() {
+            if (lastTriggeredId === 'clipper_box') {
+                const ent = entities.find(e => e.id === 'clipper_box');
+                if (ent && !ent.solved) {
+                    ent.solved = true;
+                    addToInventory('clipper', '生鏽剪線鉗', '一把從荒廢咖啡店遺物中搜刮出來的剪線鉗。', '✂️');
+                }
+            }
+            else if (lastTriggeredId === 'the_well' && currentEra === ERAS.MODERN) {
+                const questWellIcon = document.getElementById('qIcon_well');
+                const questWell = document.getElementById('quest_well');
+                if (questWellIcon && questWell) {
+                    if (questWellIcon.className.includes('square-check') === false) {
+                        questWellIcon.className = "fa-regular fa-square-check text-green-500 mt-0.5";
+                        questWell.className = "flex items-start gap-1.5 line-through text-stone-600";
+                    }
+                }
+                
+                // 🌟 首度互動結束，在此時精確將古井的 solved 標誌設為 true，並觸發自動傳送！
+                const well = entities.find(e => e.id === 'the_well');
+                if (well) {
+                    well.solved = true;
+                }
+
+                setTimeout(() => {
+                    warpTimeline(ERAS.PAST);
+                }, 400);
+            }
+            else if (lastTriggeredId === 'ghost_lian_past') {
+                const ent = entities.find(e => e.id === 'ghost_lian_past');
+                if (ent && !ent.solved) {
+                    ent.solved = true;
+                    addToInventory('ancient_key', '古樸黃銅鑰匙', '日治時期小蓮交給我的鑰匙。可以用來開洋樓的大門。', '🔑');
+                    
+                    triggerXiaolianJumpscare();
+                }
+            }
+            else if (lastTriggeredId === 'mansion_door_modern') {
+                const qIconMansion = document.getElementById('qIcon_mansion');
+                const questMansion = document.getElementById('quest_mansion');
+                if (qIconMansion && questMansion) {
+                    qIconMansion.className = "fa-regular fa-square-check text-green-500 mt-0.5";
+                    questMansion.className = "flex items-start gap-1.5 line-through text-stone-600";
+                    setTimeout(() => {
+                        startChapter2();
+                    }, 800);
+                }
+            }
+            else if (lastTriggeredId === 'creepy_portrait') {
+                const ent = entities.find(e => e.id === 'creepy_portrait');
+                if (ent && !ent.solved) {
+                    ent.solved = true;
+                    // 🔧 Bug3修復：補回 quest_portrait 完成勾選
+                    const qIconPortrait = document.getElementById('qIcon_portrait');
+                    const questPortrait = document.getElementById('quest_portrait');
+                    if (qIconPortrait && questPortrait) {
+                        qIconPortrait.className = "fa-regular fa-square-check text-green-500 mt-0.5";
+                        questPortrait.className = "flex items-start gap-2 line-through text-stone-600";
+                    }
+                    triggerJumpscare();
+                    spawnGhost();
+                }
+            }
+            else if (lastTriggeredId === 'dusty_vase_right') {
+                const ent = entities.find(e => e.id === 'dusty_vase_right');
+                if (ent && !ent.solved) {
+                    ent.solved = true;
+                    hasTalisman = true;
+                    addToInventory('talisman', '避邪符咒', '硃砂所繪的避邪符。貼在怨靈額頭上能完全淨化她！', '📜');
+                    
+                    const qIconWell2 = document.getElementById('qIcon_well2');
+                    const questWell2 = document.getElementById('quest_well2');
+                    if (qIconWell2 && questWell2) {
+                        qIconWell2.className = "fa-regular fa-square-check text-green-500 mt-0.5";
+                        questWell2.className = "flex items-start gap-2 line-through text-stone-600";
+                    }
+                }
+            }
+            else if (lastTriggeredId === 'purify_ghost_dialogue') {
+                triggerVictoryChapter2();
+            }
+
+            lastTriggeredId = null;
+        }
+
+        // Transition from Chapter 1 to Chapter 2
+        function startChapter2() {
+            isWarping = true;
+            playTimelineWarpSound();
+            
+            const overlay = document.getElementById('warpOverlay');
+            if (overlay) {
+                overlay.classList.remove('opacity-0');
+                overlay.classList.add('opacity-100');
+            }
+
+            setTimeout(() => {
+                currentChapter = 2;
+                currentEra = ERAS.MODERN;
+                
+                player.x = 9 * TILE_SIZE + 8;
+                player.y = 12 * TILE_SIZE;
+
+                const dot = document.getElementById('timelineDot');
+                const text = document.getElementById('timelineText');
+                if (dot) dot.className = "w-3.5 h-3.5 rounded-full bg-red-600 animate-pulse";
+                if (text) {
+                    text.textContent = "當前時空：洋樓內部 (危險)";
+                    text.className = "text-xs font-bold tracking-widest text-red-500";
+                }
+
+                const qList = document.getElementById('questList');
+                if (qList) {
+                    qList.innerHTML = `
+                        <li class="flex items-start gap-2" id="quest_portrait">
+                            <i class="fa-regular fa-square text-stone-600 mt-0.5" id="qIcon_portrait"></i>
+                            <span>探索洋樓主堂（調查最上方中央詭異的女主人畫像 🖼️，觸發追捕）</span>
+                        </li>
+                        <li class="flex items-start gap-2" id="quest_well2">
+                            <i class="fa-regular fa-square text-stone-600 mt-0.5" id="qIcon_well2"></i>
+                            <span>尋找小蓮生前藏好的「避邪符咒」（調查右側大青花瓷瓶 🏺）</span>
+                        </li>
+                        <li class="flex items-start gap-2" id="quest_purify">
+                            <i class="fa-regular fa-square text-stone-600 mt-0.5" id="qIcon_purify"></i>
+                            <span>避開狂暴狀態，在冷靜期貼近女鬼並**長按空白鍵**施法充能超渡！</span>
+                        </li>
+                    `;
+                }
+
+                entities.length = 0;
+                entities.push(
+                    {
+                        id: 'creepy_portrait',
+                        x: 9 * TILE_SIZE + 12,
+                        y: 3 * TILE_SIZE,
+                        width: TILE_SIZE,
+                        height: TILE_SIZE,
+                        chapter: 2,
+                        solved: false,
+                        icon: '🖼️',
+                        dialogue: [
+                            { speaker: '阿誠', avatar: '🧑‍🎓', text: '這是……民雄洋樓女主人的古老油畫畫像？' },
+                            { speaker: '阿誠', avatar: '😱', text: '等等，畫像上的眼睛竟然動了……她正死死地瞪著我，眼睛、眼睛甚至開始流出暗紅色的血……！' }
+                        ]
+                    },
+                    {
+                        id: 'mansion_closet_1',
+                        x: 2 * TILE_SIZE,
+                        y: 2 * TILE_SIZE,
+                        width: TILE_SIZE,
+                        height: TILE_SIZE,
+                        chapter: 2,
+                        icon: '🗄️',
+                        dialogue: [
+                            { speaker: '系統提示', avatar: '💡', text: '這是一座沉重紅木衣櫃。這是一個【躲藏點】。' },
+                            { speaker: '系統提示', avatar: '💡', text: '被怨靈追捕時可以躲進去阻斷視線。再次點擊「互動」或按移動鍵即可離開衣櫃。' }
+                        ]
+                    },
+                    {
+                        id: 'mansion_closet_2',
+                        x: 17 * TILE_SIZE,
+                        y: 12 * TILE_SIZE,
+                        width: TILE_SIZE,
+                        height: TILE_SIZE,
+                        chapter: 2,
+                        icon: '🗄️',
+                        dialogue: [
+                            { speaker: '系統提示', avatar: '💡', text: '這是一座沉重紅木衣櫃。這是一個【躲藏點】。' },
+                            { speaker: '系統提示', avatar: '💡', text: '被怨靈追捕時可以躲進去阻斷視線。再次點擊「互動」或按移動鍵即可離開衣櫃。' }
+                        ]
+                    },
+                    {
+                        id: 'dusty_vase_left',
+                        x: 4 * TILE_SIZE,
+                        y: 7 * TILE_SIZE,
+                        width: TILE_SIZE,
+                        height: TILE_SIZE,
+                        chapter: 2,
+                        solved: false,
+                        icon: '🏺',
+                        dialogue: [
+                            { speaker: '阿誠', avatar: '🧑‍🎓', text: '這個落滿灰塵的大青花瓶，裡面空空如也，只有一隻乾扁的死蜘蛛。' }
+                        ]
+                    },
+                    {
+                        id: 'dusty_vase_right',
+                        x: 15 * TILE_SIZE,
+                        y: 7 * TILE_SIZE,
+                        width: TILE_SIZE,
+                        height: TILE_SIZE,
+                        chapter: 2,
+                        solved: false,
+                        icon: '🏺',
+                        dialogue: [
+                            { speaker: '阿誠', avatar: '🧑‍🎓', text: '這裡也有個青花瓷花瓶……咦，花瓶底層好像塞著一張黃色的古舊紙張！' },
+                            { speaker: '阿誠', avatar: '✨', text: '太好了！這是一張蓋滿硃砂神印的「避邪符咒」！應該可以用來消滅邪崇之氣！' }
+                        ]
+                    }
+                );
+
+                setTimeout(() => {
+                    if (overlay) {
+                        overlay.classList.remove('opacity-100');
+                        overlay.classList.add('opacity-0');
+                    }
+                    isWarping = false;
+
+                    triggerDialogue([
+                        { speaker: '系統提示', avatar: '🚨', text: '【第二章：洋樓深處與怨靈追逐】' },
+                        { speaker: '阿誠', avatar: '😱', text: '「砰！！！」身後的雕花大門猛地自動關上並反鎖了！' },
+                        { speaker: '阿誠', avatar: '🧑‍🎓', text: '可惡，開不開！大古，你是不是也在這棟房子裡？' },
+                        { speaker: '阿誠', avatar: '🧑‍🎓', text: '大廳裡好冷……我必須隨時警惕自己的「理智度 (Sanity)」和「血量 (Health)」，在黑暗大廳中理智會逐漸降低……' }
+                    ]);
+                }, 800);
+
+            }, 800);
+        }
+
+        // 🔧 補回缺失的 spawnGhost() 函式 — 女鬼登場入場函式
+        function spawnGhost() {
+            ghost.x = 9 * TILE_SIZE;
+            ghost.y = 2 * TILE_SIZE;
+            ghostActive = true;
+            ghostIntroTimer = 120;       // 2 秒入場過場期，不追人
+            ghostFrenzy = false;
+            ghostFrenzyTimer = 0;
+            ghostFrenzyCooldown = 480;   // 🔧 Bug4修復：初始給予 8 秒安全冷靜期，避免立即觸發狂暴
+            startHeartbeatLoop();
+            showNotification("🔴 怨靈出現了！紅衣女鬼正在逼近……快躲！");
+        }
+
+        // 🌟【精確補回關鍵函式】：處理驅魔成功的終局事件，防止 ReferenceError 崩潰！
+        function triggerGhostPurification() {
+            ghostActive = false;
+            stopHeartbeatLoop();
+            playExorcismChime(); 
+            
+            const qIconPurify = document.getElementById('qIcon_purify');
+            const questPurify = document.getElementById('quest_purify');
+            if (qIconPurify && questPurify) {
+                qIconPurify.className = "fa-regular fa-square-check text-green-500 mt-0.5";
+                questPurify.className = "flex items-start gap-1.5 line-through text-stone-600";
+            }
+
+            triggerDialogue([
+                { speaker: '阿誠', avatar: '🧑‍🎓', text: '天兵天將，急急如律令！去！！（你猛地將手中的避邪符咒貼在撲面而來的厲鬼怨靈額頭上！）' },
+                { speaker: '小蓮的厲鬼', avatar: '😱', text: '「啊啊啊啊啊按————！！！」（大廳響起淒厲刺耳的尖叫，厲鬼身上的猩紅怨氣劇烈蒸發！）' },
+                { speaker: '小蓮的殘影', avatar: '👧', text: '（原本浮腫腐爛的臉龐，在金光閃爍下恢復了當日溫婉清秀的容貌……她向你輕輕作揖，化作無數金光粒子隨風消散……）' },
+                { speaker: '阿誠', avatar: '✨', text: '太好了……她終於得到了解脫……洋樓主廳裡的猩紅迷霧全部消散了，身後的大門也「喀噠」一聲解開了！' }
+            ]);
+            lastTriggeredId = 'purify_ghost_dialogue';
+        }
+
+        // Retry / death triggers game over screen
+        function triggerGameOver(reason) {
+            isGameOver = true;
+            stopHeartbeatLoop();
+            stopHidingBreathLoop();
+            stopChargeHum();
+            clearInterval(randomSpookTimer);
+            
+            const mainContainer = document.querySelector('body');
+            if (mainContainer) {
+                mainContainer.innerHTML = `
+                    <div class="absolute inset-0 bg-black flex flex-col justify-center items-center p-6 text-center z-50">
+                        <div class="max-w-xl flex flex-col items-center">
+                            <span class="text-red-600 text-7xl mb-6">💀</span>
+                            <h1 class="gothic-title text-4xl md:text-6xl font-black text-red-700 tracking-wider mb-4 animate-pulse">意識消逝……</h1>
+                            <p class="text-stone-300 text-md leading-relaxed mb-6">
+                                阿誠在陰冷的洋樓深處耗盡了體力與精神。隨著手電筒光線微弱地閃爍並最終熄滅……
+                            </p>
+                            <p class="text-stone-400 text-sm leading-relaxed mb-8">
+                                黑暗中，那個身著紅衣、長髮披肩的影子帶有慘白的笑容，徹底將他吞噬在劉家洋樓的無底深淵之中。
+                            </p>
+                            <div class="border border-red-900 bg-red-950/30 py-2 px-6 rounded-full mb-8 text-xs text-red-400 font-bold">
+                                死亡原因：${reason}
+                            </div>
+                            <button onclick="location.reload()" class="px-8 py-3 bg-red-950 hover:bg-red-800 text-white font-bold rounded-lg border border-red-600 transition duration-300 transform hover:scale-105">
+                                再次探險 (Retry)
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Victory screen transition for Chapter 2
+        function triggerVictoryChapter2() {
+            isGameOver = true;
+            clearInterval(randomSpookTimer);
+            
+            const mainContainer = document.querySelector('body');
+            if (mainContainer) {
+                mainContainer.innerHTML = `
+                    <div class="absolute inset-0 bg-stone-950 flex flex-col justify-center items-center p-6 text-center z-50">
+                        <div class="max-w-xl flex flex-col items-center">
+                            <span class="text-yellow-500 text-6xl mb-6">📜✨✨</span>
+                            <h1 class="gothic-title text-4xl md:text-5xl font-black text-amber-500 tracking-wider mb-4 drop-shadow">第二章：超渡成功！</h1>
+                            <p class="text-stone-300 text-md leading-relaxed mb-6">
+                                小蓮的怨念隨金光散去，民雄鬼屋前庭的恐怖紅霧徹底淨化。你在大廳深處的密室中，發現了失蹤同學大古留下的日記和相機……
+                            </p>
+                            <p class="text-stone-400 text-sm leading-relaxed mb-8">
+                                然而，大古的日記在最後一頁 write 道：『古井根本不是悲劇的起點……在日軍戰後留下的瘋狂符咒裡，還隱藏著另一個被活人獻祭的秘密……』
+                            </p>
+                            <div class="border border-amber-900 bg-amber-950/20 py-2.5 px-6 rounded-full mb-8 text-xs text-amber-400 font-bold">
+                                🎉 恭喜你成功通關《民雄鬼屋異聞錄：第二章 厲鬼與怨念》核心完整版！
+                            </div>
+                            <button onclick="location.reload()" class="px-8 py-3 bg-amber-900 hover:bg-amber-800 text-white font-bold rounded-lg border border-amber-600 transition duration-300">
+                                重新遊玩 (Reset Game)
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // 🌟 關卡選擇選單處理機制
+        function selectAndStartChapter(chapterNum) {
+            playClickSound();
+            initHorrorAudio();
+            const startScreen = document.getElementById('startScreen');
+            if (startScreen) {
+                startScreen.classList.add('hidden');
+            }
+            
+            if (chapterNum === 1) {
+                currentChapter = 1;
+                setTimeout(() => {
+                    triggerDialogue([
+                        { speaker: '阿誠', avatar: '🧑‍🎓', text: '這裡真陰森……手電筒的電量快沒了，我必須快點找到失蹤的大古。' },
+                        { speaker: '阿誠', avatar: '🧑‍🎓', text: '前方的鐵網大門似乎被上鎖了，也許我可以往右方荒廢的「咖啡雅座」碰碰運氣。' }
+                    ]);
+                }, 600);
+            } else {
+                startChapter2();
+            }
+        }
+
+        // 🌟 核心防護：安全的手動穿梭機制。確保 only when the well is solved, it allows quick warp!
+        function tryWarpTimeline() {
+            if (currentDialogue || isWarping) return;
+
+            if (currentChapter === 2) {
+                showNotification("❌ 怨氣干擾！在洋樓深處，時空的因果被死結鎖住，無法施展穿梭！");
+                return;
+            }
+
+            const well = entities.find(e => e.id === 'the_well');
+            if (well) {
+                const triggerDist = Math.hypot((player.x + player.width/2) - (well.x + TILE_SIZE*0.75), (player.y + player.height/2) - (well.y + TILE_SIZE*0.75));
+
+                if (triggerDist < 100) {
+                    if (well.solved) {
+                        const destEra = (currentEra === ERAS.MODERN) ? ERAS.PAST : ERAS.MODERN;
+                        warpTimeline(destEra);
+                    } else {
+                        // 首次互動保護：如果站在古井旁未解密，則呼叫 triggerAction 進入對話
+                        triggerAction();
+                    }
+                } else {
+                    showNotification("❌ 只有站在神秘的古井旁，耳畔響起滴水聲時，才能施展時空穿梭。");
+                }
+            }
+        }
+
+        // Warp timeline cinematic animation wrapper
+        function warpTimeline(destination) {
+            isWarping = true;
+            playTimelineWarpSound();
+            
+            const overlay = document.getElementById('warpOverlay');
+            if (overlay) {
+                overlay.classList.remove('opacity-0');
+                overlay.classList.add('opacity-100');
+            }
+
+            setTimeout(() => {
+                currentEra = destination;
+                
+                const dot = document.getElementById('timelineDot');
+                const text = document.getElementById('timelineText');
+                
+                if (currentEra === ERAS.MODERN) {
+                    if (dot) dot.className = "w-3.5 h-3.5 rounded-full bg-blue-500 animate-pulse";
+                    if (text) text.textContent = "當前時空：2026年 現代荒廢";
+                    if (text) text.className = "text-xs font-bold tracking-widest text-blue-400";
+                    showNotification("你感受到了強烈的陰冷……重新回到了破碎的2026現代。");
+                } else {
+                    if (dot) dot.className = "w-3.5 h-3.5 rounded-full bg-amber-500 animate-pulse";
+                    if (text) text.textContent = "當前時空：1930年 日治豪門";
+                    if (text) text.className = "text-xs font-bold tracking-widest text-amber-500";
+                    showNotification("一陣眩暈！眼前荒涼被奢華雕花紅牆取代……回到了繁華的過去。");
+                }
+
+                player.x = 7 * TILE_SIZE + 8;
+                player.y = 7.5 * TILE_SIZE;
+
+                setTimeout(() => {
+                    if (overlay) {
+                        overlay.classList.remove('opacity-100');
+                        overlay.classList.add('opacity-0');
+                    }
+                    isWarping = false;
+                }, 800);
+
+            }, 800);
+        }
+
+        // 🌟 Procedural Tile Drawer
+        function drawTile(type, x, y) {
+            const drawX = x - camera.x;
+            const drawY = y - camera.y;
+
+            if (currentChapter === 2) {
+                // Chapter 2 Interior Tiles
+                switch(type) {
+                    case 0: 
+                        ctx.fillStyle = '#211510';
+                        ctx.fillRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+                        ctx.strokeStyle = '#150d0a';
+                        ctx.lineWidth = 1;
+                        ctx.strokeRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+                        
+                        if ((x+y)%7 === 0) {
+                            ctx.fillStyle = '#4a0505';
+                            ctx.fillRect(drawX + 16, drawY + 20, 6, 3);
+                        }
+                        break;
+                    case 1: 
+                        ctx.fillStyle = '#0f0f0f';
+                        ctx.fillRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+                        ctx.strokeStyle = '#221919';
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+                        ctx.fillStyle = '#1c1c1c';
+                        ctx.fillRect(drawX+6, drawY+6, TILE_SIZE-12, TILE_SIZE-12);
+                        break;
+                    case 3: 
+                        ctx.fillStyle = '#3a0f05';
+                        ctx.fillRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+                        ctx.strokeStyle = '#c48916';
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+                        ctx.fillStyle = '#ffd700';
+                        ctx.fillRect(drawX + 20, drawY + 16, 8, 16);
+                        break;
+                }
+                return;
+            }
+
+            if (currentEra === ERAS.MODERN) {
+                switch(type) {
+                    case 0: 
+                        ctx.fillStyle = '#1c1b18';
+                        ctx.fillRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+                        ctx.strokeStyle = '#22201c';
+                        ctx.strokeRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+                        ctx.fillStyle = '#2d2d1e';
+                        ctx.fillRect(drawX + 8, drawY + 12, 4, 4);
+                        ctx.fillRect(drawX + 28, drawY + 24, 6, 2);
+                        break;
+                    case 1: 
+                        ctx.fillStyle = '#0f0e0d';
+                        ctx.fillRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+                        ctx.strokeStyle = '#28211a';
+                        ctx.lineWidth = 3;
+                        ctx.beginPath();
+                        ctx.moveTo(drawX, drawY);
+                        ctx.bezierCurveTo(drawX+20, drawY+15, drawX+10, drawY+30, drawX+48, drawY+48);
+                        ctx.stroke();
+                        break;
+                    case 2: 
+                        ctx.fillStyle = '#3a211c';
+                        ctx.fillRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+                        ctx.strokeStyle = '#18110f';
+                        ctx.strokeRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+                        ctx.strokeStyle = '#000000';
+                        ctx.lineWidth = 1.5;
+                        ctx.beginPath();
+                        ctx.moveTo(drawX + 10, drawY);
+                        ctx.lineTo(drawX + 15, drawY + 20);
+                        ctx.lineTo(drawX + 5, drawY + 35);
+                        ctx.stroke();
+                        break;
+                    case 3: 
+                        ctx.fillStyle = '#1f1e1a';
+                        ctx.fillRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+                        ctx.strokeStyle = '#c48916';
+                        ctx.lineWidth = 2;
+                        for(let i=6; i<TILE_SIZE; i+=12) {
+                            ctx.beginPath();
+                            ctx.moveTo(drawX + i, drawY);
+                            ctx.lineTo(drawX + i, drawY + TILE_SIZE);
+                            ctx.stroke();
+                        }
+                        break;
+                    case 5: 
+                        ctx.strokeStyle = '#4a443a';
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.moveTo(drawX, drawY); ctx.lineTo(drawX+TILE_SIZE, drawY+TILE_SIZE);
+                        ctx.moveTo(drawX+TILE_SIZE, drawY); ctx.lineTo(drawX, drawY+TILE_SIZE);
+                        ctx.stroke();
+                        break;
+                }
+            } else { 
+                switch(type) {
+                    case 0: 
+                        ctx.fillStyle = '#cd9353';
+                        ctx.fillRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+                        ctx.strokeStyle = '#9d6323';
+                        ctx.strokeRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+                        break;
+                    case 1: 
+                        ctx.fillStyle = '#1c4a16';
+                        ctx.fillRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+                        ctx.fillStyle = '#0f2f0a';
+                        ctx.fillRect(drawX+4, drawY+4, TILE_SIZE-8, TILE_SIZE-8);
+                        break;
+                    case 2: 
+                        ctx.fillStyle = '#b53a24';
+                        ctx.fillRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+                        ctx.strokeStyle = '#e2aa61'; 
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+                        ctx.fillStyle = '#dede99';
+                        ctx.fillRect(drawX + 8, drawY + 8, TILE_SIZE - 16, 6);
+                        break;
+                    case 3: 
+                        ctx.fillStyle = '#5c2a12';
+                        ctx.fillRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+                        ctx.strokeStyle = '#e2aa61';
+                        ctx.strokeRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+                        ctx.fillStyle = '#ffd700';
+                        ctx.beginPath();
+                        ctx.arc(drawX + TILE_SIZE - 10, drawY + TILE_SIZE/2, 4, 0, Math.PI*2);
+                        ctx.fill();
+                        break;
+                }
+            }
+        }
+
+        // 手繪 2D 日式/台式紅衣怨靈女鬼（小蓮）繪製函數
+        function drawTerrifyingGhost(ctx, x, y, animTimer) {
+            ctx.save();
+            
+            // 🌟 狂暴時女鬼產生猛烈的殘影震顫抖動 (Visual Tremble)
+            let shakeX = 0;
+            let shakeY = 0;
+            if (ghostFrenzy) {
+                shakeX = (Math.random() - 0.5) * 4;
+                shakeY = (Math.random() - 0.5) * 4;
+            }
+
+            const floatOffset = Math.sin(animTimer * 0.1) * 6;
+            const finalY = y + floatOffset + shakeY;
+            const finalX = x + shakeX;
+
+            // 🌟 狂暴狀態下的紅色粒子/火焰影子背光
+            if (ghostFrenzy) {
+                ctx.shadowColor = 'rgba(239, 68, 68, 0.95)';
+                ctx.shadowBlur = 18;
+            }
+
+            // 1. 鮮血長裙（Flowing Red Dress）
+            ctx.fillStyle = ghostFrenzy ? '#b91c1c' : '#800000'; // 狂暴時裙子變為更刺眼的亮鮮紅
+            ctx.beginPath();
+            ctx.moveTo(finalX + 18, finalY + 12);
+            ctx.quadraticCurveTo(finalX - 2, finalY + 28, finalX - 6, finalY + 44);
+            ctx.lineTo(finalX + 42, finalY + 44);
+            ctx.quadraticCurveTo(finalX + 38, finalY + 28, finalX + 18, finalY + 12);
+            ctx.fill();
+            
+            // 裙擺不規則撕裂
+            ctx.fillStyle = '#1c0000';
+            for (let i = -6; i <= 42; i += 8) {
+                ctx.beginPath();
+                ctx.arc(finalX + i, finalY + 44, 4, 0, Math.PI, true);
+                ctx.fill();
+            }
+
+            // 2. 慘白面部與脖子（Pale Skin）
+            ctx.fillStyle = '#eaeaea';
+            ctx.beginPath();
+            ctx.arc(finalX + 18, finalY + 10, 10, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 3. 凌亂遮臉長黑髮（Messy Long Black Hair）
+            ctx.fillStyle = '#0a0a0a';
+            ctx.beginPath();
+            ctx.arc(finalX + 18, finalY + 10, 11, Math.PI, 0); 
+            ctx.lineTo(finalX + 29, finalY + 36); 
+            ctx.lineTo(finalX + 23, finalY + 36);
+            ctx.lineTo(finalX + 23, finalY + 18); 
+            ctx.lineTo(finalX + 13, finalY + 18);
+            ctx.lineTo(finalX + 13, finalY + 36); 
+            ctx.lineTo(finalX + 7, finalY + 36);
+            ctx.closePath();
+            ctx.fill();
+
+            // 4. 流血的眼眶（Bleeding Red Eyes）
+            if (animTimer % 30 < 22 || ghostFrenzy) {
+                ctx.fillStyle = '#ef4444'; 
+                ctx.beginPath();
+                ctx.arc(finalX + 14, finalY + 11, ghostFrenzy ? 3 : 2, 0, Math.PI * 2); // 狂暴時瞳孔放大
+                ctx.arc(finalX + 22, finalY + 11, ghostFrenzy ? 3 : 2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 血淚痕跡
+                ctx.strokeStyle = '#991b1b';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(finalX + 14, finalY + 11); ctx.lineTo(finalX + 13, finalY + 19);
+                ctx.moveTo(finalX + 22, finalY + 11); ctx.lineTo(finalX + 23, finalY + 19);
+                ctx.stroke();
+            }
+
+            // 🌟 狂暴時繪製頭頂的免疫警告文字
+            if (ghostFrenzy) {
+                ctx.shadowBlur = 0; // 清除影子以繪製清晰文字
+                ctx.font = 'bold 9px "Noto Serif TC"';
+                ctx.fillStyle = '#f87171';
+                ctx.textAlign = 'center';
+                ctx.fillText('⚠️ 狂暴 (Immune)', finalX + 18, finalY - 14);
+            }
+
+            ctx.restore();
+        }
+
+        // Main game renderer
+        function draw() {
+            ctx.fillStyle = '#050505';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            for (let r = 0; r < MAP_ROWS; r++) {
+                for (let c = 0; c < MAP_COLS; c++) {
+                    const tileType = (currentChapter === 2) ? mapData.mansion_interior[r][c] : mapData[currentEra][r][c];
+                    drawTile(tileType, c * TILE_SIZE, r * TILE_SIZE);
+                }
+            }
+
+            // 🌟 第一章小蓮死後：1930 日治大院被恐怖紅霧和地面黏稠血跡永久渲染
+            if (currentEra === ERAS.PAST && isBloodyAtmosphere) {
+                // 1. 全局血霧濾鏡
+                ctx.fillStyle = 'rgba(125, 0, 0, 0.42)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // 2. 繪製地上大片粘稠血泊
+                ctx.fillStyle = 'rgba(65, 0, 0, 0.85)';
+                const bloodPools = [
+                    {x: 13 * TILE_SIZE, y: 4 * TILE_SIZE},
+                    {x: 12.3 * TILE_SIZE, y: 4.5 * TILE_SIZE},
+                    {x: 7.5 * TILE_SIZE, y: 6.8 * TILE_SIZE}
+                ];
+                bloodPools.forEach(pool => {
+                    const px = pool.x - camera.x;
+                    const py = pool.y - camera.y;
+                    ctx.beginPath();
+                    ctx.arc(px + 24, py + 24, 38, 0, Math.PI * 2);
+                    ctx.arc(px + 10, py + 34, 25, 0, Math.PI * 2);
+                    ctx.arc(px + 36, py + 16, 20, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+
+                // 3. 螢幕上方流動的粘稠血滴
+                ctx.fillStyle = 'rgba(48, 0, 0, 0.98)';
+                ctx.fillRect(0, 0, canvas.width, 14);
+                for (let i = 0; i < canvas.width; i += 30) {
+                    const dripHeight = 22 + Math.sin(i * 0.05) * 12 + Math.cos(i * 0.1) * 6;
+                    ctx.fillRect(i, 0, 4, dripHeight);
+                }
+            }
+
+            for (let ent of entities) {
+                if (ent.isGlobal || ent.chapter === currentChapter || (!ent.chapter && ent.era === currentEra)) {
+                    const drawX = ent.x - camera.x;
+                    const drawY = ent.y - camera.y;
+
+                    if (ent.solved && ent.id === 'clipper_box') continue;
+
+                    ctx.font = '28px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(ent.icon, drawX + ent.width/2, drawY + ent.height/2);
+
+                    const dist = Math.hypot((player.x + player.width/2) - (ent.x + ent.width/2), (player.y + player.height/2) - (ent.y + ent.height/2));
+                    if (dist < 60 && !currentDialogue) {
+                        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+                        ctx.fillRect(drawX - 10, drawY - 24, ent.width + 20, 18);
+                        ctx.strokeStyle = '#b45309';
+                        ctx.strokeRect(drawX - 10, drawY - 24, ent.width + 20, 18);
+                        ctx.font = '9px "Noto Serif TC"';
+                        ctx.fillStyle = '#fbbf24';
+                        
+                        let hintText = '🔍 按 [空白鍵] 調查';
+                        if (ent.id.includes('closet')) {
+                            hintText = isHiding ? '🚪 按 [空白鍵] 推門離開' : '🙈 按 [空白鍵] 躲入衣櫃';
+                        }
+                        ctx.fillText(hintText, drawX + ent.width/2, drawY - 15);
+                    }
+                }
+            }
+
+            // Draw Vengeful Ghost AI (Chapter 2)
+            if (currentChapter === 2 && ghostActive) {
+                const gScreenX = ghost.x - camera.x;
+                const gScreenY = ghost.y - camera.y;
+                ghost.animTimer++;
+                drawTerrifyingGhost(ctx, gScreenX, gScreenY, ghost.animTimer);
+            }
+
+            const pScreenX = player.x - camera.x;
+            const pScreenY = player.y - camera.y;
+            
+            if (!isHiding) {
+                ctx.fillStyle = 'rgba(0,0,0,0.45)';
+                ctx.beginPath();
+                ctx.ellipse(pScreenX + player.width/2, pScreenY + player.height - 4, 12, 6, 0, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            ctx.font = '26px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            let characterIcon = '🧑‍🎓'; 
+            if (currentEra === ERAS.PAST) {
+                characterIcon = '🧑'; 
+            }
+
+            if (!isHiding) {
+                if (!isInvincible || Math.floor(invincibilityTimer / 5) % 2 === 0) {
+                    ctx.fillText(characterIcon, pScreenX + player.width/2, pScreenY + player.height/2 - 2);
+                }
+            } else {
+                ctx.fillStyle = 'rgba(239, 144, 144, 0.2)';
+                ctx.font = '11px "Noto Serif TC"';
+                ctx.fillText('🙈 已躲藏', pScreenX + player.width/2, pScreenY + player.height/2);
+            }
+
+            if (currentEra === ERAS.MODERN && battery > 0 && !isHiding) {
+                ctx.fillStyle = '#fffae8';
+                ctx.beginPath();
+                ctx.arc(pScreenX + player.width/2 + Math.cos(player.angle)*14, pScreenY + player.height/2 + Math.sin(player.angle)*14, 3, 0, Math.PI*2);
+                ctx.fill();
+            }
+
+            // 🌟 渲染施法吟唱進度條以及「神聖穿牆淨化結界環」
+            if (currentChapter === 2 && talismanCharge > 0 && !isHiding) {
+                ctx.save();
+                
+                // 1. 繪製神聖穿透結界（光暈波紋，無懼任何牆壁阻擋，讓玩家直觀看到攻擊半徑）
+                ctx.strokeStyle = 'rgba(251, 191, 36, 0.45)';
+                ctx.fillStyle = 'rgba(251, 191, 36, 0.05)';
+                ctx.lineWidth = 1.5;
+                ctx.setLineDash([4, 3]);
+                ctx.beginPath();
+                ctx.arc(pScreenX + player.width/2, pScreenY + player.height/2, talismanRange, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+                
+                // 2. 施法進度條
+                ctx.restore();
+                ctx.save();
+                ctx.fillStyle = 'rgba(5, 5, 5, 0.75)';
+                ctx.fillRect(pScreenX - 14, pScreenY - 26, 60, 8);
+                ctx.strokeStyle = '#d97706';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(pScreenX - 14, pScreenY - 26, 60, 8);
+                
+                ctx.fillStyle = '#fbbf24';
+                ctx.fillRect(pScreenX - 14, pScreenY - 26, (talismanCharge / 100) * 60, 8);
+                
+                ctx.font = 'bold 8px "Noto Serif TC"';
+                ctx.fillStyle = '#fcd34d';
+                ctx.textAlign = 'center';
+                ctx.fillText('⚡ 結界淨化中...', pScreenX + player.width / 2, pScreenY - 32);
+                ctx.restore();
+            }
+
+            drawLightingOverlay();
+        }
+
+        // Primary game loop
+        function gameLoop() {
+            if (!isGameOver) {
+                movePlayer();
+                
+                if (currentChapter === 2) {
+                    if (!isHiding) {
+                        sanity = Math.max(0, sanity - 0.004);
+                    }
+
+                    if (ghostActive) {
+                        const distToGhost = Math.hypot((player.x + player.width/2) - (ghost.x + 18), (player.y + player.height/2) - (ghost.y + 18));
+                        
+                        // 女鬼雙重狂暴狀態更新週期
+                        if (ghostIntroTimer > 0) {
+                            ghostIntroTimer--;
+                            if (ghostIntroTimer % 15 === 0) {
+                                playSingleHeartbeat(); 
+                            }
+                        } else {
+                            // 狂暴機制計時與切換
+                            if (ghostFrenzy) {
+                                ghostFrenzyTimer--;
+                                if (ghostFrenzyTimer <= 0) {
+                                    ghostFrenzy = false;
+                                    ghostFrenzyCooldown = 660; // 解除狂暴後，安全冷靜期為 11 秒 (660 幀)
+                                    showNotification("❄️ 女鬼的厲吼平息，狂暴狀態解除！趁現在貼近進行符咒施法！");
+                                }
+                            } else {
+                                ghostFrenzyCooldown--;
+                                if (ghostFrenzyCooldown <= 0) {
+                                    ghostFrenzy = true;
+                                    ghostFrenzyTimer = 240; // 週期性狂暴時長為 4 秒 (240 幀)
+                                    playScreamerSound(); // 狂暴長嘯
+                                    showNotification("🔥 厲鬼長嘯！女鬼再次陷入狂化狀態！速度暴增且完全免疫符咒！");
+                                }
+                            }
+
+                            // 🌟【重要更新】：冷靜期施法時女鬼大幅減速，狂暴時全速前進
+                            let currentGhostSpeed = ghostFrenzy ? 2.6 : 1.35;
+                            
+                            // 🌟 施法阻尼與排斥力：當玩家在冷靜期正在對女鬼進行淨化時
+                            if (isChargingTalisman && !ghostFrenzy && distToGhost <= talismanRange) {
+                                // 1. 女鬼被強光威壓，移動速度衰減 55%
+                                currentGhostSpeed *= 0.45;
+                                
+                                // 2. 若女鬼靠得太近，會被聖光緩緩往反方向排擠，防止因其擊退重置而打斷攻擊
+                                if (distToGhost < 85) {
+                                    const repelAngle = Math.atan2(ghost.y - player.y, ghost.x - player.x);
+                                    // 產生平滑且強大的向外推力
+                                    ghost.x += Math.cos(repelAngle) * 1.6;
+                                    ghost.y += Math.sin(repelAngle) * 1.6;
+
+                                    // 確保女鬼不穿出大廳外圍牆壁
+                                    ghost.x = Math.max(TILE_SIZE, Math.min(ghost.x, (MAP_COLS-2)*TILE_SIZE));
+                                    ghost.y = Math.max(TILE_SIZE, Math.min(ghost.y, (MAP_ROWS-2)*TILE_SIZE));
+                                }
+                            }
+
+                            if (!isHiding) {
+                                const dx = player.x - ghost.x;
+                                const dy = player.y - ghost.y;
+                                const chaseAngle = Math.atan2(dy, dx);
+                                
+                                ghost.x += Math.cos(chaseAngle) * currentGhostSpeed;
+                                ghost.y += Math.sin(chaseAngle) * currentGhostSpeed;
+
+                                // 靠近時被動威壓
+                                if (distToGhost < 160) {
+                                    const sanityLossFactor = ghostFrenzy ? 0.05 : 0.012;
+                                    sanity = Math.max(0, sanity - sanityLossFactor); 
+                                    if (Math.random() < 0.12) {
+                                        playSingleHeartbeat();
+                                    }
+                                }
+
+                                // 🌟 遭到觸碰傷害判定：調整偵測距離半徑並提供 5 次高容錯防秒死
+                                if (distToGhost < 45 && !isInvincible) {
+                                    playHurtSound();
+                                    
+                                    // 遭到攻擊立即重設施法
+                                    isChargingTalisman = false;
+                                    talismanCharge = 0;
+                                    stopChargeHum();
+
+                                    hp = Math.max(0, hp - 20);      
+                                    sanity = Math.max(0, sanity - 10); 
+                                    
+                                    const hpBar = document.getElementById('hpBar');
+                                    const sanityBar = document.getElementById('sanityBar');
+                                    if (hpBar) hpBar.style.width = hp + "%";
+                                    if (sanityBar) sanityBar.style.width = sanity + "%";
+
+                                    showNotification("💥 遭到女鬼襲擊！受到重擊，快利用櫃子躲藏！");
+
+                                    isInvincible = true;
+                                    invincibilityTimer = 130; 
+
+                                    const knockDir = Math.atan2(player.y - ghost.y, player.x - ghost.x);
+                                    player.x += Math.cos(knockDir) * 75;
+                                    player.y += Math.sin(knockDir) * 75;
+
+                                    player.x = Math.max(TILE_SIZE, Math.min(player.x, (MAP_COLS-2)*TILE_SIZE));
+                                    player.y = Math.max(TILE_SIZE, Math.min(player.y, (MAP_ROWS-2)*TILE_SIZE));
+
+                                    if (hp <= 0) {
+                                        triggerGameOver("生命值耗盡");
+                                    }
+                                }
+                            } else {
+                                // 躲藏時女鬼失去目標飄回中央
+                                const targetX = 9 * TILE_SIZE;
+                                const targetY = 7 * TILE_SIZE;
+                                const dx = targetX - ghost.x;
+                                const dy = targetY - ghost.y;
+                                const roamAngle = Math.atan2(dy, dx);
+                                ghost.x += Math.cos(roamAngle) * 0.7;
+                                ghost.y += Math.sin(roamAngle) * 0.7;
+                            }
+                        }
+
+                        // 長按符咒淨化施法邏輯 (加入了與女鬼狂暴及距離抗衡機制)
+                        if (isChargingTalisman && !isHiding && !currentDialogue) {
+                            if (distToGhost <= talismanRange) {
+                                if (ghostFrenzy) {
+                                    isChargingTalisman = false;
+                                    talismanCharge = 0;
+                                    stopChargeHum();
+                                    showNotification("❌ 女鬼正處於狂暴狀態，符咒無法穿透她的怨氣！");
+                                } else {
+                                    startChargeHum();
+                                    talismanCharge += 0.85; 
+                                    updateChargeHumPitch(talismanCharge);
+
+                                    if (talismanCharge >= 100) {
+                                        triggerGhostPurification();
+                                        isChargingTalisman = false;
+                                        talismanCharge = 0;
+                                        stopChargeHum();
+                                    }
+                                }
+                            } else {
+                                talismanCharge = 0;
+                                stopChargeHum();
+                                if (Math.random() < 0.015) { 
+                                    showNotification("❌ 距離女鬼太遠，符咒失去效果！");
+                                }
+                            }
+                        } else {
+                            talismanCharge = 0;
+                            stopChargeHum();
+                        }
+                    }
+
+                    // 理智同步更新與警告
+                    const sanityBar = document.getElementById('sanityBar');
+                    const sanityIcon = document.getElementById('sanityIcon');
+                    if (sanityBar) {
+                        sanityBar.style.width = sanity + "%";
+                        if (sanity < 30) {
+                            sanityBar.className = "h-full bg-red-700 transition-all duration-300 animate-ping";
+                            if (sanityIcon) sanityIcon.className = "fa-solid fa-skull text-red-500 text-sm animate-bounce";
+                        } else {
+                            sanityBar.className = "h-full bg-purple-600 transition-all duration-300 animate-pulse";
+                            if (sanityIcon) sanityIcon.className = "fa-solid fa-brain text-purple-400 text-sm";
+                        }
+                    }
+
+                    if (sanity < 25 && Math.random() < 0.01) {
+                        showNotification("🎴 理智極低！你耳邊聽到了令人發瘋的嬰兒啼哭聲……");
+                        playWaterDropSound();
+                    }
+                    if (sanity <= 0) {
+                        triggerGameOver("理智崩潰，陷入永恆癲狂");
+                    }
+                }
+
+                if (isInvincible) {
+                    invincibilityTimer--;
+                    if (invincibilityTimer <= 0) {
+                        isInvincible = false;
+                    }
+                }
+
+                updateCamera();
+                draw();
+            }
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Toggle title screen to startGame
+        window.onload = function () {
+            // Start the animation on window load.
+            gameLoop();
+        }
+
+        // ════════════════════════════════════════════════
+        //  裝置選擇系統
+        // ════════════════════════════════════════════════
+        let selectedDevice = localStorage.getItem('gh_device') || null;
+
+        // 頁面載入時，如果記憶中有選擇則直接套用視覺高亮
+        (function initDeviceUI() {
+            if (selectedDevice) applyDeviceStyle(selectedDevice, false);
+        })();
+
+        function selectDevice(type) {
+            selectedDevice = type;
+            localStorage.setItem('gh_device', type);
+            applyDeviceStyle(type, true);
+        }
+
+        function applyDeviceStyle(type, showHint) {
+            const btnD = document.getElementById('btn_desktop');
+            const btnM = document.getElementById('btn_mobile');
+            const hint = document.getElementById('deviceHint');
+
+            // 重置兩個按鈕
+            btnD.classList.remove('border-amber-600','bg-stone-800','ring-2','ring-amber-600');
+            btnM.classList.remove('border-red-500','bg-stone-800','ring-2','ring-red-500');
+
+            if (type === 'desktop') {
+                btnD.classList.add('border-amber-600','bg-stone-800','ring-2','ring-amber-600');
+                if (hint) hint.textContent = '✅ 已選擇電腦模式：鍵盤 WASD + Shift 衝刺 + 空白鍵互動';
+                if (hint) hint.className = 'text-amber-600 text-[10px] text-center mt-2';
+            } else {
+                btnM.classList.add('border-red-500','bg-stone-800','ring-2','ring-red-500');
+                if (hint) hint.textContent = '✅ 已選擇手機模式：虛擬搖桿 + 長按互動鍵';
+                if (hint) hint.className = 'text-red-400 text-[10px] text-center mt-2';
+            }
+        }
+
+        function applyDeviceLayout() {
+            const sidebar     = document.getElementById('rightSidebar');
+            const mobileLayer = document.getElementById('mobileControlLayer');
+            const layoutWrap  = document.querySelector('.game-layout-wrapper');
+            const canvasWrap  = document.querySelector('.game-canvas-container');
+
+            if (selectedDevice === 'mobile') {
+                document.body.classList.add('mobile-mode');
+                document.body.style.overscrollBehavior = 'none';
+
+                // 隱藏 sidebar
+                if (sidebar) sidebar.style.display = 'none';
+
+                // 外層改為直立 flex-col
+                if (layoutWrap) {
+                    layoutWrap.style.cssText =
+                        'flex-direction:column;align-items:stretch;padding:0;gap:0;height:100dvh;overflow:hidden;';
+                }
+
+                // canvas 容器全寬、固定高度（保持 4:3，約 75vw 高）
+                if (canvasWrap) {
+                    canvasWrap.style.cssText =
+                        'width:100vw;max-width:100vw;border-radius:0;border-left:none;border-right:none;flex-shrink:0;';
+                }
+
+                // 控制列緊接 canvas 下方（position:static，不疊加）
+                if (mobileLayer) {
+                    mobileLayer.style.position   = 'static';
+                    mobileLayer.style.display     = 'block';
+                    mobileLayer.style.zIndex      = '60';
+                    mobileLayer.style.background  = 'rgba(0,0,0,0.82)';
+                    mobileLayer.style.borderTop   = '1px solid #44403c';
+                    mobileLayer.style.flex        = '1';
+                    mobileLayer.style.minHeight   = '180px';
+                }
+
+            } else {
+                // 電腦模式：恢復全部
+                document.body.classList.remove('mobile-mode');
+                if (sidebar)     sidebar.style.cssText = '';
+                if (mobileLayer) { mobileLayer.style.cssText = 'display:none;z-index:60'; }
+                if (layoutWrap)  layoutWrap.style.cssText = '';
+                if (canvasWrap)  canvasWrap.style.cssText  = '';
+            }
+        }
+
+
+
+        // 覆寫 selectAndStartChapter，加入裝置佈局套用
+        const _origSelectAndStartChapter = selectAndStartChapter;
+        selectAndStartChapter = function(chapterNum) {
+            if (!selectedDevice) {
+                // 未選裝置時，依螢幕寬度自動判斷
+                selectedDevice = window.innerWidth < 768 ? 'mobile' : 'desktop';
+                applyDeviceStyle(selectedDevice, false);
+            }
+            applyDeviceLayout();
+            _origSelectAndStartChapter(chapterNum);
+        };
+
+    </script>
+
+    <!-- ══ 手機專用懸浮控制層（固定在螢幕底部，手機模式才顯示）══ -->
+    <div id="mobileControlLayer" style="display:none;z-index:60" class="fixed bottom-0 left-0 right-0 pointer-events-none select-none">
+        <div class="flex justify-between items-end px-4 pb-6 pt-2 pointer-events-none bg-black/60 border-t border-stone-800">
+
+            <!-- 左下：D-pad 方向鍵 -->
+            <div class="pointer-events-auto" style="touch-action:none">
+                <div class="grid gap-1.5" style="grid-template-columns:64px 64px 64px; grid-template-rows:64px 64px 64px;">
+                    <div></div>
+                    <button class="bg-black/70 border border-stone-500 rounded-xl flex items-center justify-center text-white text-xl active:bg-red-950"
+                        style="touch-action:none"
+                        ontouchstart="triggerMobileMove('up');event.preventDefault()"
+                        ontouchend="stopMobileMove();event.preventDefault()"
+                        ontouchcancel="stopMobileMove()" style="font-size:24px">▲</button>
+                    <div></div>
+
+                    <button class="bg-black/70 border border-stone-500 rounded-xl flex items-center justify-center text-white text-xl active:bg-red-950"
+                        style="touch-action:none"
+                        ontouchstart="triggerMobileMove('left');event.preventDefault()"
+                        ontouchend="stopMobileMove();event.preventDefault()"
+                        ontouchcancel="stopMobileMove()">◀</button>
+                    <div class="bg-black/50 rounded-xl flex items-center justify-center text-stone-600 text-[9px]">移動</div>
+                    <button class="bg-black/70 border border-stone-500 rounded-xl flex items-center justify-center text-white text-xl active:bg-red-950"
+                        style="touch-action:none"
+                        ontouchstart="triggerMobileMove('right');event.preventDefault()"
+                        ontouchend="stopMobileMove();event.preventDefault()"
+                        ontouchcancel="stopMobileMove()">▶</button>
+
+                    <div></div>
+                    <button class="bg-black/70 border border-stone-500 rounded-xl flex items-center justify-center text-white text-xl active:bg-red-950"
+                        style="touch-action:none"
+                        ontouchstart="triggerMobileMove('down');event.preventDefault()"
+                        ontouchend="stopMobileMove();event.preventDefault()"
+                        ontouchcancel="stopMobileMove()">▼</button>
+                    <div></div>
+                </div>
+            </div>
+
+            <!-- 右下：功能按鈕群 -->
+            <div class="flex flex-col gap-2 items-end pointer-events-auto" style="touch-action:none">
+                <!-- 衝刺按鈕 -->
+                <button id="mobileSprintBtn"
+                    class="w-14 h-10 bg-black/70 border border-amber-700 rounded-xl text-amber-400 font-bold text-xs active:bg-amber-950"
+                    style="touch-action:none"
+                    ontouchstart="keys['shift']=true;event.preventDefault()"
+                    ontouchend="keys['shift']=false;event.preventDefault()"
+                    ontouchcancel="keys['shift']=false">
+                    <i class="fa-solid fa-bolt text-sm"></i><br>衝刺
+                </button>
+                <!-- 互動/施法按鈕 -->
+                <button id="mobileInteractBtnNew"
+                    class="w-16 h-16 bg-red-950/90 border-2 border-red-500 rounded-full text-white font-bold text-xs flex flex-col items-center justify-center active:scale-90 shadow-lg"
+                    style="touch-action:none"
+                    ontouchstart="triggerInteractStart();event.preventDefault()"
+                    ontouchend="triggerInteractEnd();event.preventDefault()"
+                    ontouchcancel="triggerInteractEnd()">
+                    <i class="fa-solid fa-hand-pointer text-lg text-red-300"></i>
+                    <span class="mt-0.5 leading-none">互動<br>／施法</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
