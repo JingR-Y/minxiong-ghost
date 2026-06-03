@@ -2105,7 +2105,10 @@
                             <div style="border:1px solid #4c1d95;background:rgba(76,29,149,0.12);padding:10px 24px;border-radius:9999px;margin-bottom:20px;font-size:0.75rem;color:#8b5cf6;font-weight:bold">
                                 ★ 第三章完結：被困其中 ──「等待最後一位客人入座」
                             </div>
-                            <p style="color:#3d2d5a;font-size:0.75rem;margin-bottom:24px">……大古的下落，依然是個謎。</p>
+                            <p style="color:#3d2d5a;font-size:0.75rem;margin-bottom:16px">……大古的下落，依然是個謎。</p>
+                            <div style="border:1px dashed #3b0764;background:rgba(30,10,60,0.4);padding:10px 20px;border-radius:8px;margin-bottom:22px;font-size:0.72rem;color:#7c3aed;letter-spacing:0.05em">
+                                🛠️ 第四章正在開發中，敬請期待……
+                            </div>
                             <button onclick="location.reload()" style="padding:12px 32px;background:#1a0a2e;border:1px solid #6d28d9;color:white;font-weight:bold;border-radius:8px;cursor:pointer;font-family:'Noto Serif TC',serif">
                                 重新挑戰 (Retry)
                             </button>
@@ -2136,6 +2139,9 @@
                         <p style="color:#7c6d9e;font-size:0.85rem;line-height:1.8;margin-bottom:24px">
                             你的記憶還在，但你的腳再也離不開這個地方了。某一天，又一個好奇的人推開了門走進來——你緩緩抬起頭，看向他。
                         </p>
+                        <div style="border:1px dashed #3b0764;background:rgba(30,10,60,0.4);padding:10px 20px;border-radius:8px;margin-bottom:20px;font-size:0.72rem;color:#7c3aed;letter-spacing:0.05em">
+                            🛠️ 第四章正在開發中，敬請期待……
+                        </div>
                         <button onclick="location.reload()" style="padding:12px 32px;background:#1a0a2e;border:1px solid #6d28d9;color:white;font-weight:bold;border-radius:8px;cursor:pointer;font-family:'Noto Serif TC',serif">
                             重新挑戰 (Retry)
                         </button>
@@ -2230,16 +2236,27 @@
                             <p class="text-stone-400 text-sm leading-relaxed mb-8">
                                 然而，大古的日記在最後一頁 write 道：『古井根本不是悲劇的起點……在日軍戰後留下的瘋狂符咒裡，還隱藏著另一個被活人獻祭的秘密……』
                             </p>
-                            <div class="border border-amber-900 bg-amber-950/20 py-2.5 px-6 rounded-full mb-8 text-xs text-amber-400 font-bold">
-                                🎉 恭喜你成功通關《民雄鬼屋異聞錄：第二章 厲鬼與怨念》核心完整版！
+                            <div class="border border-amber-900 bg-amber-950/20 py-2.5 px-6 rounded-full mb-6 text-xs text-amber-400 font-bold">
+                                🎉 恭喜你成功通關《民雄鬼屋異聞錄：第二章 厲鬼與怨念》！
                             </div>
-                            <button onclick="location.reload()" class="px-8 py-3 bg-amber-900 hover:bg-amber-800 text-white font-bold rounded-lg border border-amber-600 transition duration-300">
-                                重新遊玩 (Reset Game)
-                            </button>
+                            <div class="flex flex-col sm:flex-row gap-3 w-full justify-center">
+                                <button onclick="continueToChapter3()" class="px-7 py-3 bg-purple-900 hover:bg-purple-800 text-white font-bold rounded-lg border border-purple-500 transition duration-300 flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-mug-hot text-purple-300"></i> 繼續第三章：咖啡雅座
+                                </button>
+                                <button onclick="location.reload()" class="px-7 py-3 bg-stone-800 hover:bg-stone-700 text-stone-300 font-bold rounded-lg border border-stone-600 transition duration-300">
+                                    重新遊玩 (Reset)
+                                </button>
+                            </div>
                         </div>
                     </div>
                 `;
             }
+        }
+
+        // 第二章勝利後直接跳第三章（使用 sessionStorage 記錄意圖再 reload）
+        function continueToChapter3() {
+            sessionStorage.setItem('startChapter', '3');
+            location.reload();
         }
 
         // 🌟 關卡選擇選單處理機制
@@ -3122,8 +3139,13 @@
 
         // Toggle title screen to startGame
         window.onload = function () {
-            // Start the animation on window load.
             gameLoop();
+            // 從第二章勝利畫面直接接續第三章
+            const jumpTo = sessionStorage.getItem('startChapter');
+            if (jumpTo === '3') {
+                sessionStorage.removeItem('startChapter');
+                setTimeout(() => { selectAndStartChapter(3); }, 300);
+            }
         }
 
         // ════════════════════════════════════════════════
