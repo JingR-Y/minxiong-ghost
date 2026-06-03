@@ -155,13 +155,18 @@
                 <p id="deviceHint" class="text-stone-600 text-[10px] text-center mt-2">尚未選擇裝置</p>
             </div>
 
-            <!-- 🌟 關卡選擇選單：維持原先的第一、二章無縫選擇按鈕 -->
-            <div class="flex flex-col sm:flex-row gap-4 w-full justify-center max-w-md mb-8">
-                <button onclick="selectAndStartChapter(1)" class="flex-1 px-6 py-3.5 bg-stone-950 hover:bg-stone-900 text-white font-bold rounded-lg border border-red-900 hover:border-red-600 transition duration-300 transform hover:scale-105 active:scale-95 tracking-wider text-sm shadow-lg">
-                    <i class="fa-solid fa-hourglass-half mr-2 text-red-500"></i> 第一章：古井與時空穿梭
-                </button>
-                <button onclick="selectAndStartChapter(2)" class="flex-1 px-6 py-3.5 bg-red-950/80 hover:bg-red-800 text-white font-bold rounded-lg border border-red-600 transition duration-300 transform hover:scale-105 active:scale-95 tracking-wider text-sm shadow-lg shadow-red-900/30">
-                    <i class="fa-solid fa-ghost mr-2 animate-pulse text-red-400"></i> 第二章：洋樓內部與怨靈
+            <!-- 🌟 關卡選擇選單 -->
+            <div class="flex flex-col gap-3 w-full justify-center max-w-md mb-8">
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <button onclick="selectAndStartChapter(1)" class="flex-1 px-5 py-3 bg-stone-950 hover:bg-stone-900 text-white font-bold rounded-lg border border-red-900 hover:border-red-600 transition duration-300 transform hover:scale-105 active:scale-95 tracking-wider text-sm shadow-lg">
+                        <i class="fa-solid fa-hourglass-half mr-2 text-red-500"></i> 第一章：古井與時空穿梭
+                    </button>
+                    <button onclick="selectAndStartChapter(2)" class="flex-1 px-5 py-3 bg-red-950/80 hover:bg-red-800 text-white font-bold rounded-lg border border-red-600 transition duration-300 transform hover:scale-105 active:scale-95 tracking-wider text-sm shadow-lg shadow-red-900/30">
+                        <i class="fa-solid fa-ghost mr-2 animate-pulse text-red-400"></i> 第二章：洋樓與怨靈追逐
+                    </button>
+                </div>
+                <button onclick="selectAndStartChapter(3)" class="w-full px-5 py-3 bg-purple-950/80 hover:bg-purple-900 text-white font-bold rounded-lg border border-purple-700 hover:border-purple-500 transition duration-300 transform hover:scale-105 active:scale-95 tracking-wider text-sm shadow-lg shadow-purple-900/40">
+                    <i class="fa-solid fa-mug-hot mr-2 animate-pulse text-purple-400"></i> 第三章：咖啡雅座最後的客人 ☕
                 </button>
             </div>
             
@@ -751,6 +756,17 @@
         
         let isBloodyAtmosphere = false;  // 🌟 小蓮死後 1930 年代是否變為血腥驚悚模樣
 
+        // ══ 第三章狀態變數 ══
+        let assimilation = 0;            // 0~100：同化值（靠近幽靈時上升）
+        let cafeGhostsSpoken = 0;        // 已對話的幽靈客人數
+        let cafeJumpscareDone = false;   // 跳嚇是否已觸發
+        let cafeEndingTriggered = false; // 結局是否已觸發
+        let cafeFlicker = 1.0;          // 燈光閃爍強度（1.0=正常）
+        let cafeFlickerTimer = 0;
+        let assimNotified30 = false;
+        let assimNotified60 = false;
+        let assimNotified85 = false;
+
         let isChargingTalisman = false;  // 是否正在施法唸咒
         let talismanCharge = 0;          // 當前淨化施法進度 (0 ~ 100)
         const talismanRange = 100;       // 🌟 提升符咒有效發揮半徑至 100 (約兩格地磚)，確保過牆攻擊更流暢
@@ -842,17 +858,36 @@
                 [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
                 [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
                 [1,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,1],
-                [1,0,1,1,1,0,1,0,1,1,1,1,0,1,0,1,1,1,0,1], 
+                [1,0,1,1,1,0,1,0,1,1,1,1,0,1,0,1,1,1,0,1],
                 [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
                 [1,0,0,1,1,1,1,1,0,0,0,0,1,1,1,1,1,0,0,1],
                 [1,0,0,1,0,0,0,1,0,0,0,0,1,0,0,0,1,0,0,1],
-                [1,0,0,1,0,0,0,1,0,0,0,0,1,0,0,0,1,0,0,1], 
+                [1,0,0,1,0,0,0,1,0,0,0,0,1,0,0,0,1,0,0,1],
                 [1,0,0,1,1,0,1,1,0,0,0,0,1,1,0,1,1,0,0,1],
                 [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
                 [1,1,1,0,0,0,0,1,1,1,1,1,1,0,0,0,0,1,1,1],
                 [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
                 [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-                [1,1,1,1,1,1,1,1,1,3,3,1,1,1,1,1,1,1,1,1], 
+                [1,1,1,1,1,1,1,1,1,3,3,1,1,1,1,1,1,1,1,1],
+                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+            ],
+            // ══ 第三章：咖啡雅座廢墟室內地圖 ══
+            // 0=咖啡廳木地板 1=牆 2=壁紙裝飾牆(solid) 3=反鎖出口門(solid) 5=吧台(solid)
+            cafe_interior: [
+                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,5,5,5,5,5,0,0,0,0,0,0,0,5,5,5,5,5,5,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,1,1,1,1,1,1,1,1,3,3,1,1,1,1,1,1,1,1,1],
                 [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
             ]
         };
@@ -1107,6 +1142,10 @@
 
             if (col < 0 || col >= MAP_COLS || row < 0 || row >= MAP_ROWS) return true;
 
+            if (currentChapter === 3) {
+                const tile = mapData.cafe_interior[row][col];
+                return tile === 1 || tile === 2 || tile === 5 || tile === 3;
+            }
             if (currentChapter === 2) {
                 const tile = mapData.mansion_interior[row][col];
                 return tile === 1 || tile === 3;
@@ -1169,7 +1208,7 @@
 
                 player.angle = Math.atan2(dy, dx);
 
-                if (currentChapter === 2) {
+                if (currentChapter === 2 || currentChapter === 3) {
                     playFootstepSound();
                 }
 
@@ -1515,13 +1554,24 @@
                 triggerDialogue(ent.dialogue);
             }
             else if (ent.id === 'dusty_vase_right') {
-            if (!ent.solved) {
-                triggerDialogue(ent.dialogue);
-            } else {
-                showNotification("空空的花瓶，上面的黃色符咒已經被你撕下來了。");
+                if (!ent.solved) {
+                    triggerDialogue(ent.dialogue);
+                } else {
+                    showNotification("空空的花瓶，上面的黃色符咒已經被你撕下來了。");
+                }
+            }
+            // ══ 第三章通用互動（幽靈客人、遺留物、出口）══
+            else if (currentChapter === 3 && ent.dialogue) {
+                if (ent.id === 'c3_exit') {
+                    // 出口不管 solved 都可觸發（故事推進）
+                    triggerDialogue(ent.dialogue);
+                } else if (!ent.solved) {
+                    triggerDialogue(ent.dialogue);
+                } else {
+                    showNotification("（已調查過）");
+                }
             }
         }
-    }
 
     // 🌟 女主人畫像 Jumpscare 驚嚇事件
     function triggerJumpscare() {
@@ -1656,6 +1706,66 @@
             }
             else if (lastTriggeredId === 'purify_ghost_dialogue') {
                 triggerVictoryChapter2();
+            }
+            // ══ 第三章對話後事件 ══
+            else if (['c3_ghost_elder','c3_ghost_girl','c3_ghost_couple','c3_ghost_waiter'].includes(lastTriggeredId)) {
+                const ent = entities.find(e => e.id === lastTriggeredId);
+                if (ent && !ent.solved) {
+                    ent.solved = true;
+                    cafeGhostsSpoken++;
+                    assimilation = Math.min(100, assimilation + 14);
+                    ent.icon = '👁️'; // 幽靈已「看向」玩家
+                    showNotification(`👻 同化值上升……（${cafeGhostsSpoken}/4 位幽靈客人已對話）`);
+                    if (cafeGhostsSpoken === 2) {
+                        showNotification("⚠️ 你感到有什麼東西開始盯著你的背脊……");
+                    }
+                    if (cafeGhostsSpoken >= 3 && !cafeJumpscareDone) {
+                        setTimeout(() => { triggerCafeJumpscare(); }, 1800);
+                    }
+                    // 更新任務
+                    if (cafeGhostsSpoken >= 4) {
+                        const qi = document.getElementById('qIcon_c3_explore');
+                        const qt = document.getElementById('quest_c3_explore');
+                        if (qi && qt) {
+                            qi.className = 'fa-regular fa-square-check text-green-500 mt-0.5';
+                            qt.className = 'flex items-start gap-2 line-through text-stone-600';
+                        }
+                    }
+                }
+            }
+            else if (lastTriggeredId === 'c3_clock' || lastTriggeredId === 'c3_menu') {
+                const ent = entities.find(e => e.id === lastTriggeredId);
+                if (ent && !ent.solved) {
+                    ent.solved = true;
+                    assimilation = Math.min(100, assimilation + 6);
+                }
+                // 兩件都調查後打勾
+                const clk = entities.find(e => e.id === 'c3_clock');
+                const mnu = entities.find(e => e.id === 'c3_menu');
+                if (clk && mnu && clk.solved && mnu.solved) {
+                    const qi = document.getElementById('qIcon_c3_clues');
+                    const qt = document.getElementById('quest_c3_clues');
+                    if (qi && qt) {
+                        qi.className = 'fa-regular fa-square-check text-green-500 mt-0.5';
+                        qt.className = 'flex items-start gap-2 line-through text-stone-600';
+                    }
+                }
+            }
+            else if (lastTriggeredId === 'c3_phone') {
+                const ent = entities.find(e => e.id === 'c3_phone');
+                if (ent && !ent.solved) {
+                    ent.solved = true;
+                    // 電話略微清醒頭腦，同化值微降
+                    assimilation = Math.max(0, assimilation - 8);
+                    sanity = Math.min(100, sanity + 5);
+                    showNotification("📞 你自己的聲音……快逃……");
+                }
+            }
+            else if (lastTriggeredId === 'c3_exit') {
+                if (!cafeEndingTriggered) {
+                    cafeEndingTriggered = true;
+                    setTimeout(() => { triggerChapter3Ending(); }, 600);
+                }
             }
 
             lastTriggeredId = null;
@@ -1794,6 +1904,246 @@
             }, 800);
         }
 
+        // ══════════════════════════════════════════════
+        // 第三章：咖啡雅座最後的客人
+        // ══════════════════════════════════════════════
+        function startChapter3() {
+            isWarping = true;
+            playTimelineWarpSound();
+            const overlay = document.getElementById('warpOverlay');
+            if (overlay) { overlay.classList.remove('opacity-0'); overlay.classList.add('opacity-100'); }
+
+            setTimeout(() => {
+                currentChapter = 3;
+                currentEra = ERAS.MODERN;
+                ghostActive = false;
+                assimilation = 0;
+                cafeGhostsSpoken = 0;
+                cafeJumpscareDone = false;
+                cafeEndingTriggered = false;
+                assimNotified30 = false;
+                assimNotified60 = false;
+                assimNotified85 = false;
+                sanity = 100;
+                hp = 100;
+                battery = 100;
+
+                player.x = 9 * TILE_SIZE + 8;
+                player.y = 6 * TILE_SIZE;
+
+                const dot = document.getElementById('timelineDot');
+                const text = document.getElementById('timelineText');
+                if (dot) dot.className = 'w-3.5 h-3.5 rounded-full bg-purple-600 animate-pulse';
+                if (text) { text.textContent = '當前時空：2026年 咖啡雅座（廢棄）'; text.className = 'text-xs font-bold tracking-widest text-purple-400'; }
+
+                const qList = document.getElementById('questList');
+                if (qList) qList.innerHTML = `
+                    <li class="flex items-start gap-2" id="quest_c3_explore">
+                        <i class="fa-regular fa-square text-stone-600 mt-0.5" id="qIcon_c3_explore"></i>
+                        <span>與所有幽靈客人 👁️ 對話，蒐集線索（同化值會上升，謹慎行動）</span>
+                    </li>
+                    <li class="flex items-start gap-2" id="quest_c3_clues">
+                        <i class="fa-regular fa-square text-stone-600 mt-0.5" id="qIcon_c3_clues"></i>
+                        <span>調查遺留物：壁鐘 🕰️ ／ 菜單 📋 ／ 老電話 ☎️</span>
+                    </li>
+                    <li class="flex items-start gap-2" id="quest_c3_escape">
+                        <i class="fa-regular fa-square text-stone-600 mt-0.5" id="qIcon_c3_escape"></i>
+                        <span>在同化值耗盡前找到出口 🚪——趁現在逃出去！</span>
+                    </li>
+                `;
+
+                const TS = TILE_SIZE;
+                entities.length = 0;
+                entities.push(
+                    // 幽靈客人
+                    { id:'c3_ghost_elder',  x:3*TS+4,  y:2*TS+8, width:TS, height:TS, chapter:3, solved:false, isGhost3:true, icon:'🧓',
+                      dialogue:[
+                        { speaker:'白髮老人', avatar:'🧓', text:'（他緩緩抬起臉，兩眼是一片渾濁的白，像燒焦的白紙……）' },
+                        { speaker:'白髮老人', avatar:'🧓', text:'「今天的咖啡……真的很苦……」（他放下那個空空如也的陶杯，嘴角裂出機械性的微笑）' },
+                        { speaker:'阿誠',    avatar:'😰', text:'（他的手指——他的手指沒有指甲，只剩下十個整齊的黑洞……我感到噁心，我必須離開這張桌子。）' }
+                      ]
+                    },
+                    { id:'c3_ghost_girl',   x:14*TS+4, y:2*TS+8, width:TS, height:TS, chapter:3, solved:false, isGhost3:true, icon:'👧',
+                      dialogue:[
+                        { speaker:'面窗的女孩', avatar:'👧', text:'（她背對著你，頭髮垂落在窗玻璃上，像是往外長出去的黑色樹根……）' },
+                        { speaker:'面窗的女孩', avatar:'👧', text:'「外面……又來了新客人嗎……已經很久了……好久……好久了……」' },
+                        { speaker:'面窗的女孩', avatar:'😱', text:'（窗玻璃上，她的倒影正對著你微笑——但她本人沒有轉頭。）' },
+                        { speaker:'阿誠',       avatar:'😰', text:'（我感覺有什麼東西從我的脊椎慢慢往上爬……我要離開這張桌子。）' }
+                      ]
+                    },
+                    { id:'c3_ghost_couple', x:5*TS+4,  y:5*TS+8, width:TS, height:TS, chapter:3, solved:false, isGhost3:true, icon:'👫',
+                      dialogue:[
+                        { speaker:'男性幽靈', avatar:'🧔', text:'「親愛的……你說，我們還要等多久？」（他的聲音很低沉，像從地底傳來的迴響）' },
+                        { speaker:'女性幽靈', avatar:'👩', text:'「……一直等下去吧。反正……我們哪裡也去不了了。」' },
+                        { speaker:'男性幽靈', avatar:'🧔', text:'（他們同時緩緩轉頭，看向你，臉上掛著完全沒有情感的微笑）「……你也留下來陪我們吧。」' },
+                        { speaker:'阿誠',     avatar:'😱', text:'（我的腳突然重得好像生了根……我費了好大的力氣，才把自己從那張桌子旁扯開。）' }
+                      ]
+                    },
+                    { id:'c3_ghost_waiter', x:15*TS+4, y:6*TS+8, width:TS, height:TS, chapter:3, solved:false, isGhost3:true, icon:'🤵',
+                      dialogue:[
+                        { speaker:'服務生', avatar:'🤵', text:'（他低著頭，手持記事本，不停地用鉛筆在同一行寫著同樣的字……）' },
+                        { speaker:'服務生', avatar:'🤵', text:'「歡迎光臨……歡迎光臨……歡迎光臨……」（他緩緩抬起頭——臉上沒有眼睛、沒有鼻子，只有一張嘴在重複說著）' },
+                        { speaker:'阿誠',   avatar:'😱', text:'（我連退了好幾步，撞上了身後的椅背——他慢慢低下頭，繼續在記事本上寫著那一行字。）' }
+                      ]
+                    },
+                    // 遺留物線索
+                    { id:'c3_clock', x:1*TS+4, y:4*TS+8, width:TS*0.8, height:TS*0.8, chapter:3, solved:false, icon:'🕰️',
+                      dialogue:[
+                        { speaker:'系統', avatar:'👁️', text:'（牆上的老舊掛鐘，指針停在「3:44」——你盯著它看了三十秒，它紋絲未動。）' },
+                        { speaker:'系統', avatar:'👁️', text:'（鐘面下方，有人用指甲深深刻入：「他們在等最後一個位子坐滿。」）' },
+                        { speaker:'阿誠', avatar:'😰', text:'（3:44……究竟有誰，在這個時刻死在了這裡……）' }
+                      ]
+                    },
+                    { id:'c3_menu', x:9*TS+4, y:7*TS+8, width:TS, height:TS, chapter:3, solved:false, icon:'📋',
+                      dialogue:[
+                        { speaker:'系統', avatar:'👁️', text:'（吧台上攤著一份菜單，字跡工整，就像剛剛印好的——）' },
+                        { speaker:'系統', avatar:'👁️', text:'「今日特餐：靈魂咖啡 NT$0 ／ 永恆甜點 NT$0 ／ 記憶紅茶 NT$0」' },
+                        { speaker:'系統', avatar:'👁️', text:'（最下方有一行細小的血紅文字：「入座即無法離去。欲離者，需以記憶為代價。」）' },
+                        { speaker:'阿誠', avatar:'😰', text:'（……我沒有坐下。我還沒有坐下。）' }
+                      ]
+                    },
+                    { id:'c3_phone', x:17*TS+4, y:8*TS+8, width:TS, height:TS, chapter:3, solved:false, icon:'☎️',
+                      dialogue:[
+                        { speaker:'系統', avatar:'📳', text:'「叮鈴——叮鈴——」（電話突然自動響了起來！你僵在原地……）' },
+                        { speaker:'阿誠', avatar:'🧑‍🎓', text:'（你拿起話筒。沉默。然後——）「……喂？」' },
+                        { speaker:'話筒傳來的聲音', avatar:'👻', text:'（那是你自己的聲音，但扭曲而破碎）「……快逃……快逃出去……不要坐下……不要……進來……」' },
+                        { speaker:'阿誠', avatar:'😱', text:'（電話斷線了。話筒上殘留著一個指甲印的痕跡，不像是你留下來的。）' }
+                      ]
+                    },
+                    // 反鎖出口
+                    { id:'c3_exit', x:9*TS, y:12*TS+4, width:2*TS, height:TS*0.8, chapter:3, solved:false, icon:'🚪',
+                      dialogue:[
+                        { speaker:'阿誠', avatar:'🧑‍🎓', text:'（你衝向出口的大門，拼命地推——）' },
+                        { speaker:'阿誠', avatar:'😰', text:'「開——開啊！！」（門……沒有動。門鎖從外面反扣了。）' },
+                        { speaker:'阿誠', avatar:'😱', text:'（你猛地轉身——玻璃門的倒影中，所有的幽靈客人都站了起來，正向你緩緩逼近……）' },
+                        { speaker:'阿誠', avatar:'😱', text:'（你的腳失去力氣，慢慢靠在門上滑落……你感到一種難以言喻的疲憊與……平靜。）' }
+                      ]
+                    }
+                );
+
+                if (overlay) { overlay.classList.remove('opacity-100'); overlay.classList.add('opacity-0'); }
+                isWarping = false;
+
+                triggerDialogue([
+                    { speaker:'系統提示', avatar:'☕', text:'【第三章：咖啡雅座最後的客人】' },
+                    { speaker:'阿誠', avatar:'🧑‍🎓', text:'（你不知道為什麼走進來了……民雄鬼屋廢墟旁這間荒廢的「咖啡雅座」，燈，居然還亮著。）' },
+                    { speaker:'阿誠', avatar:'😰', text:'（店裡有幾個「人」坐在位子上，沒有人說話，沒有人抬頭。空氣中有陳舊的咖啡氣味，還有另一種……你不敢細想的氣味。）' },
+                    { speaker:'系統提示', avatar:'⚠️', text:'靠近幽靈客人會增加「同化值」（左側紅條）。同化值滿則出不去——趁理智尚存，調查完線索後快找出口！' },
+                ]);
+            }, 800);
+        }
+
+        // 咖啡廳跳嚇：所有客人站起來
+        function triggerCafeJumpscare() {
+            if (cafeJumpscareDone) return;
+            cafeJumpscareDone = true;
+            playScreamerSound();
+
+            const overlay = document.getElementById('jumpscareOverlay');
+            if (overlay) {
+                overlay.classList.remove('hidden');
+                const icon = overlay.querySelector('span.animate-ping');
+                const title = overlay.querySelector('.gothic-title');
+                if (icon) icon.textContent = '👁️';
+                if (title) title.textContent = '他 們 都 站 起 來 了';
+            }
+
+            setTimeout(() => {
+                if (overlay) overlay.classList.add('hidden');
+                // 所有幽靈客人圖示換成站立凝視態
+                for (const ent of entities) {
+                    if (ent.isGhost3) { ent.icon = '🧟'; }
+                }
+                triggerDialogue([
+                    { speaker:'阿誠', avatar:'😱', text:'（燈光突然「啪」一聲全滅——黑暗中，椅子腿擦過地板的聲音此起彼伏……）' },
+                    { speaker:'阿誠', avatar:'😱', text:'（燈光「啪」一聲重新亮起——所有的客人都站了起來，無聲無息地面向你。）' },
+                    { speaker:'阿誠', avatar:'😰', text:'（沒有表情、沒有動作——只是站著，看著你。空氣完全靜止了。）' },
+                    { speaker:'阿誠', avatar:'🧑‍🎓', text:'（我必須出去——出口在哪裡？）' },
+                ]);
+            }, 1600);
+        }
+
+        // 第三章結局：被困其中（嘗試出口）
+        function triggerChapter3Ending() {
+            clearInterval(randomSpookTimer);
+            isGameOver = true;
+            playScreamerSound();
+
+            const jOverlay = document.getElementById('jumpscareOverlay');
+            if (jOverlay) {
+                jOverlay.classList.remove('hidden');
+                const icon = jOverlay.querySelector('span.animate-ping');
+                const title = jOverlay.querySelector('.gothic-title');
+                if (icon) icon.textContent = '🚪';
+                if (title) title.textContent = '你 哪 裡 也 去 不 了';
+            }
+
+            setTimeout(() => {
+                if (jOverlay) jOverlay.classList.add('hidden');
+                const warp = document.getElementById('warpOverlay');
+                if (warp) { warp.classList.remove('opacity-0'); warp.classList.add('opacity-100'); }
+
+                setTimeout(() => {
+                    document.querySelector('body').innerHTML = `
+                    <div style="position:fixed;inset:0;background:#030208;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:24px;text-align:center;font-family:'Noto Serif TC',serif">
+                        <div style="max-width:520px">
+                            <span style="font-size:4rem;display:block;margin-bottom:16px">🪑</span>
+                            <h1 style="font-family:'Cinzel','Noto Serif TC',serif;font-size:2.4rem;font-weight:900;color:#8b5cf6;letter-spacing:0.25em;margin-bottom:16px">
+                                被 困 其 中
+                            </h1>
+                            <p style="color:#c4b5fd;line-height:1.9;margin-bottom:14px;font-size:0.95rem">
+                                你沒有走出咖啡雅座。
+                            </p>
+                            <p style="color:#7c6d9e;font-size:0.85rem;line-height:1.8;margin-bottom:14px">
+                                玻璃門外，2026年的廢墟靜靜等著你。但門縫透進來的光，在你伸手觸碰的瞬間消失了。
+                            </p>
+                            <p style="color:#7c6d9e;font-size:0.85rem;line-height:1.8;margin-bottom:24px">
+                                你轉過身——某個角落的椅子空了出來。那個服務生走了過來，低著頭，在記事本上寫下了第五個名字。
+                            </p>
+                            <p style="color:#4c3d6d;font-size:0.8rem;letter-spacing:0.08em;margin-bottom:6px">「歡迎光臨。」</p>
+                            <p style="color:#4c3d6d;font-size:0.8rem;letter-spacing:0.08em;margin-bottom:28px">「咖啡雅座，永遠為您留著一個位子。」</p>
+                            <div style="border:1px solid #4c1d95;background:rgba(76,29,149,0.12);padding:10px 24px;border-radius:9999px;margin-bottom:20px;font-size:0.75rem;color:#8b5cf6;font-weight:bold">
+                                ★ 第三章完結：被困其中 ──「等待最後一位客人入座」
+                            </div>
+                            <p style="color:#3d2d5a;font-size:0.75rem;margin-bottom:24px">……大古的下落，依然是個謎。</p>
+                            <button onclick="location.reload()" style="padding:12px 32px;background:#1a0a2e;border:1px solid #6d28d9;color:white;font-weight:bold;border-radius:8px;cursor:pointer;font-family:'Noto Serif TC',serif">
+                                重新挑戰 (Retry)
+                            </button>
+                        </div>
+                    </div>`;
+                }, 2200);
+            }, 1900);
+        }
+
+        // 第三章結局：完全同化（被動結局，同化值/理智歸零）
+        function triggerChapter3AssimilationEnding() {
+            clearInterval(randomSpookTimer);
+            isGameOver = true;
+            const warp = document.getElementById('warpOverlay');
+            if (warp) { warp.classList.remove('opacity-0'); warp.classList.add('opacity-100'); }
+
+            setTimeout(() => {
+                document.querySelector('body').innerHTML = `
+                <div style="position:fixed;inset:0;background:#030208;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:24px;text-align:center;font-family:'Noto Serif TC',serif">
+                    <div style="max-width:500px">
+                        <span style="font-size:4rem;display:block;margin-bottom:16px">👻</span>
+                        <h1 style="font-family:'Cinzel','Noto Serif TC',serif;font-size:2.2rem;font-weight:900;color:#6d28d9;letter-spacing:0.25em;margin-bottom:16px">
+                            意 識 融 合
+                        </h1>
+                        <p style="color:#c4b5fd;line-height:1.9;margin-bottom:14px;font-size:0.9rem">
+                            你在咖啡雅座坐了下來。
+                        </p>
+                        <p style="color:#7c6d9e;font-size:0.85rem;line-height:1.8;margin-bottom:24px">
+                            你的記憶還在，但你的腳再也離不開這個地方了。某一天，又一個好奇的人推開了門走進來——你緩緩抬起頭，看向他。
+                        </p>
+                        <button onclick="location.reload()" style="padding:12px 32px;background:#1a0a2e;border:1px solid #6d28d9;color:white;font-weight:bold;border-radius:8px;cursor:pointer;font-family:'Noto Serif TC',serif">
+                            重新挑戰 (Retry)
+                        </button>
+                    </div>
+                </div>`;
+            }, 2800);
+        }
+
         // 🔧 補回缺失的 spawnGhost() 函式 — 女鬼登場入場函式
         function spawnGhost() {
             ghost.x = 9 * TILE_SIZE;
@@ -1909,8 +2259,10 @@
                         { speaker: '阿誠', avatar: '🧑‍🎓', text: '前方的鐵網大門似乎被上鎖了，也許我可以往右方荒廢的「咖啡雅座」碰碰運氣。' }
                     ]);
                 }, 600);
-            } else {
+            } else if (chapterNum === 2) {
                 startChapter2();
+            } else if (chapterNum === 3) {
+                startChapter3();
             }
         }
 
@@ -1988,6 +2340,87 @@
         function drawTile(type, x, y) {
             const drawX = x - camera.x;
             const drawY = y - camera.y;
+
+            if (currentChapter === 3) {
+                // Chapter 3: 咖啡雅座廢墟地磚
+                switch(type) {
+                    case 0: // 深色木地板
+                        ctx.fillStyle = '#100d08';
+                        ctx.fillRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+                        ctx.strokeStyle = '#1a1409';
+                        ctx.lineWidth = 0.5;
+                        ctx.strokeRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+                        if ((Math.floor(x/TILE_SIZE) + Math.floor(y/TILE_SIZE)) % 2 === 0) {
+                            ctx.strokeStyle = 'rgba(40,28,14,0.6)';
+                            ctx.lineWidth = 0.5;
+                            ctx.beginPath();
+                            for (let wi = 8; wi < TILE_SIZE; wi += 12) {
+                                ctx.moveTo(drawX+wi, drawY); ctx.lineTo(drawX+wi, drawY+TILE_SIZE);
+                            }
+                            ctx.stroke();
+                        }
+                        break;
+                    case 1: // 暗色牆壁
+                        ctx.fillStyle = '#080710';
+                        ctx.fillRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+                        ctx.strokeStyle = '#0e0c1a';
+                        ctx.lineWidth = 1;
+                        ctx.strokeRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+                        break;
+                    case 2: // 褪色壁紙裝飾牆
+                        ctx.fillStyle = '#0c0b16';
+                        ctx.fillRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+                        ctx.strokeStyle = 'rgba(80,55,110,0.25)';
+                        ctx.lineWidth = 0.5;
+                        for (let pi = 0; pi <= TILE_SIZE; pi += 12) {
+                            for (let pj = 0; pj <= TILE_SIZE; pj += 12) {
+                                ctx.beginPath();
+                                ctx.moveTo(drawX+pi,   drawY+pj+6);
+                                ctx.lineTo(drawX+pi+6, drawY+pj);
+                                ctx.lineTo(drawX+pi+12,drawY+pj+6);
+                                ctx.lineTo(drawX+pi+6, drawY+pj+12);
+                                ctx.closePath();
+                                ctx.stroke();
+                            }
+                        }
+                        break;
+                    case 3: // 反鎖的出口門
+                        ctx.fillStyle = '#130e06';
+                        ctx.fillRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+                        ctx.strokeStyle = '#3d2a0a';
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(drawX+2, drawY+2, TILE_SIZE-4, TILE_SIZE-4);
+                        ctx.strokeStyle = '#251808';
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(drawX+TILE_SIZE/2, drawY+4);
+                        ctx.lineTo(drawX+TILE_SIZE/2, drawY+TILE_SIZE-4);
+                        ctx.stroke();
+                        // 鎖頭
+                        ctx.fillStyle = '#3a2a14';
+                        ctx.fillRect(drawX+TILE_SIZE/2-5, drawY+TILE_SIZE/2-4, 10, 9);
+                        ctx.strokeStyle = '#6b4c20';
+                        ctx.strokeRect(drawX+TILE_SIZE/2-5, drawY+TILE_SIZE/2-4, 10, 9);
+                        break;
+                    case 5: // 吧台台面
+                        ctx.fillStyle = '#1c1208';
+                        ctx.fillRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+                        ctx.strokeStyle = '#3d2a10';
+                        ctx.lineWidth = 1.5;
+                        ctx.strokeRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+                        ctx.fillStyle = '#251a0c';
+                        ctx.fillRect(drawX+2, drawY+2, TILE_SIZE-4, 7);
+                        // 台面紋理
+                        ctx.strokeStyle = 'rgba(60,40,15,0.5)';
+                        ctx.lineWidth = 0.5;
+                        ctx.beginPath();
+                        ctx.moveTo(drawX, drawY+TILE_SIZE/2);
+                        ctx.lineTo(drawX+TILE_SIZE, drawY+TILE_SIZE/2);
+                        ctx.stroke();
+                        break;
+                }
+                return;
+            }
 
             if (currentChapter === 2) {
                 // Chapter 2 Interior Tiles
@@ -2212,7 +2645,9 @@
 
             for (let r = 0; r < MAP_ROWS; r++) {
                 for (let c = 0; c < MAP_COLS; c++) {
-                    const tileType = (currentChapter === 2) ? mapData.mansion_interior[r][c] : mapData[currentEra][r][c];
+                    const tileType = (currentChapter === 3) ? mapData.cafe_interior[r][c] :
+                                     (currentChapter === 2) ? mapData.mansion_interior[r][c] :
+                                     mapData[currentEra][r][c];
                     drawTile(tileType, c * TILE_SIZE, r * TILE_SIZE);
                 }
             }
@@ -2246,6 +2681,76 @@
                 for (let i = 0; i < canvas.width; i += 30) {
                     const dripHeight = 22 + Math.sin(i * 0.05) * 12 + Math.cos(i * 0.1) * 6;
                     ctx.fillRect(i, 0, 4, dripHeight);
+                }
+            }
+
+            // ══ 第三章：咖啡廳氛圍特效 ══
+            if (currentChapter === 3) {
+                cafeFlickerTimer++;
+                if (cafeFlickerTimer > 200 && Math.random() < 0.012) {
+                    cafeFlicker = 0.15 + Math.random() * 0.55;
+                    cafeFlickerTimer = 0;
+                    setTimeout(() => { cafeFlicker = 1.0; }, 70 + Math.random() * 180);
+                }
+
+                // 幽紫薄霧層（隨同化值加深）
+                const mistA = 0.1 + assimilation * 0.003;
+                ctx.fillStyle = `rgba(10, 4, 22, ${Math.min(0.55, mistA)})`;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // 燈光閃爍暗化
+                if (cafeFlicker < 0.95) {
+                    ctx.fillStyle = `rgba(0, 0, 0, ${Math.min(0.88, 1.0 - cafeFlicker)})`;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
+
+                // 繪製咖啡桌（純視覺，不擋路）
+                const tablePos = [
+                    {c:3,r:2.5},{c:5,r:2.5},{c:13,r:2.5},{c:15,r:2.5},
+                    {c:3,r:4.5},{c:5,r:4.5},{c:13,r:4.5},{c:15,r:4.5},
+                    {c:3,r:6.5},{c:5,r:6.5},{c:13,r:6.5},{c:15,r:6.5},
+                ];
+                tablePos.forEach(({c,r}) => {
+                    const tx = c*TILE_SIZE - camera.x + TILE_SIZE/2;
+                    const ty = r*TILE_SIZE - camera.y + TILE_SIZE/2;
+                    // 桌面
+                    ctx.fillStyle = 'rgba(25, 15, 6, 0.92)';
+                    ctx.beginPath();
+                    ctx.arc(tx, ty, 19, 0, Math.PI*2);
+                    ctx.fill();
+                    ctx.strokeStyle = 'rgba(65, 40, 14, 0.7)';
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+                    // 桌腳陰影
+                    ctx.fillStyle = 'rgba(0,0,0,0.4)';
+                    ctx.beginPath();
+                    ctx.ellipse(tx, ty+20, 10, 4, 0, 0, Math.PI*2);
+                    ctx.fill();
+                });
+
+                // 跳嚇後：幽靈散發靈光
+                if (cafeJumpscareDone) {
+                    for (const ent of entities) {
+                        if (ent.isGhost3) {
+                            const ex = ent.x - camera.x + ent.width/2;
+                            const ey = ent.y - camera.y + ent.height/2;
+                            const pulse = 0.25 + 0.2 * Math.sin(Date.now() * 0.002 + ent.x * 0.01);
+                            const grd = ctx.createRadialGradient(ex, ey, 4, ex, ey, 55);
+                            grd.addColorStop(0, `rgba(110, 50, 180, ${pulse})`);
+                            grd.addColorStop(1, 'rgba(0,0,0,0)');
+                            ctx.fillStyle = grd;
+                            ctx.fillRect(ex-55, ey-55, 110, 110);
+                        }
+                    }
+                }
+                // 同化暈映（高同化值時螢幕邊緣紫色渲染）
+                if (assimilation > 45) {
+                    const vigA = ((assimilation - 45) / 55) * 0.45;
+                    const vigGrd = ctx.createRadialGradient(canvas.width/2, canvas.height/2, canvas.height*0.3, canvas.width/2, canvas.height/2, canvas.height*0.85);
+                    vigGrd.addColorStop(0, 'rgba(0,0,0,0)');
+                    vigGrd.addColorStop(1, `rgba(55, 10, 90, ${vigA})`);
+                    ctx.fillStyle = vigGrd;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
                 }
             }
 
@@ -2540,6 +3045,72 @@
                     invincibilityTimer--;
                     if (invincibilityTimer <= 0) {
                         isInvincible = false;
+                    }
+                }
+
+                // ══ 第三章遊戲邏輯 ══
+                if (currentChapter === 3) {
+                    // 環境壓力：理智緩慢下降
+                    sanity = Math.max(0, sanity - 0.0018);
+
+                    // 靠近幽靈客人：同化值上升 + 理智更快流失
+                    for (const ent of entities) {
+                        if (ent.isGhost3) {
+                            const d = Math.hypot(
+                                (player.x + player.width/2) - (ent.x + ent.width/2),
+                                (player.y + player.height/2) - (ent.y + ent.height/2)
+                            );
+                            if (d < 88) {
+                                assimilation = Math.min(100, assimilation + 0.022);
+                                sanity = Math.max(0, sanity - 0.006);
+                                if (Math.random() < 0.004) playSingleHeartbeat();
+                            }
+                        }
+                    }
+
+                    // 同化值閾值通知
+                    if (!assimNotified30 && assimilation >= 30) {
+                        assimNotified30 = true;
+                        showNotification("😵 你感到一陣昏沉……這裡的空氣很不對勁。");
+                    }
+                    if (!assimNotified60 && assimilation >= 60) {
+                        assimNotified60 = true;
+                        showNotification("🔮 思緒開始模糊……你忘記了你來這裡的目的。");
+                    }
+                    if (!assimNotified85 && assimilation >= 85) {
+                        assimNotified85 = true;
+                        showNotification("💀 你感到自己正在成為咖啡雅座的一部分……");
+                    }
+
+                    // 完全同化或理智歸零：觸發同化結局
+                    if ((assimilation >= 100 || sanity <= 0) && !cafeEndingTriggered) {
+                        cafeEndingTriggered = true;
+                        setTimeout(() => { triggerChapter3AssimilationEnding(); }, 400);
+                    }
+
+                    // 跳嚇後：幽靈緩緩向玩家飄近（純視覺威脅）
+                    if (cafeJumpscareDone && !currentDialogue) {
+                        for (const ent of entities) {
+                            if (ent.isGhost3) {
+                                const dx = (player.x + player.width/2) - (ent.x + ent.width/2);
+                                const dy = (player.y + player.height/2) - (ent.y + ent.height/2);
+                                const d = Math.hypot(dx, dy);
+                                if (d > 72) {
+                                    ent.x += (dx / d) * 0.35;
+                                    ent.y += (dy / d) * 0.35;
+                                }
+                            }
+                        }
+                    }
+
+                    // 更新 HUD 同化值顯示（借用 sanity bar 顯示同化進度）
+                    const sBar = document.getElementById('sanityBar');
+                    const aBar = document.getElementById('hpBar');
+                    if (sBar) sBar.style.width = sanity + '%';
+                    if (aBar) {
+                        const syncedPct = Math.max(0, 100 - assimilation);
+                        aBar.style.width = syncedPct + '%';
+                        aBar.style.background = assimilation > 60 ? '#7c3aed' : '#dc2626';
                     }
                 }
 
