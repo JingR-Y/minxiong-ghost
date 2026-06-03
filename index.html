@@ -173,7 +173,7 @@
     <div class="game-layout-wrapper w-full h-full flex flex-col md:flex-row items-center justify-center p-2 md:p-4 gap-4 z-20">
         
         <!-- Game Area (Canvas + UI Overlays) -->
-        <div class="game-canvas-container relative flex flex-col items-center justify-center bg-stone-950 border-2 border-stone-800 rounded-xl overflow-hidden shadow-2xl w-full max-w-[800px] aspect-[4/3] crt-overlay">
+        <div class="game-canvas-container relative flex flex-col items-center justify-center bg-stone-950 border-2 border-stone-800 rounded-xl shadow-2xl w-full max-w-[800px] aspect-[4/3] crt-overlay" style="overflow:hidden">
             
             <!-- Timeline Status Indicator -->
             <div class="absolute top-4 left-4 z-30 flex items-center gap-2 bg-black/70 border border-stone-700 px-3 py-1.5 rounded-full backdrop-blur-md">
@@ -216,7 +216,7 @@
             </div>
 
             <!-- Dialogue Engine Panel -->
-            <div id="dialoguePanel" class="fixed bottom-0 left-0 right-0 bg-stone-950/98 border-t-2 border-amber-900/80 p-4 shadow-2xl gap-4 backdrop-blur-sm" style="display:none;z-index:70" ontouchstart="advanceDialogue();event.stopPropagation()" onclick="advanceDialogue()">
+            <div id="dialoguePanel" class="absolute bottom-0 left-0 right-0 bg-stone-950/98 border-t-2 border-amber-900/80 p-4 shadow-2xl gap-4 backdrop-blur-sm" style="display:none;z-index:70" ontouchstart="advanceDialogue();event.stopPropagation()" onclick="advanceDialogue()">
                 <!-- Dialogue Character Avatar -->
                 <div class="flex-shrink-0 w-12 h-12 md:w-16 md:h-16 rounded-lg bg-stone-900 border border-stone-800 flex items-center justify-center overflow-hidden">
                     <span id="dialogueAvatar" class="text-2xl md:text-3xl">🧑‍🎓</span>
@@ -2606,15 +2606,16 @@
                 // 隱藏側欄
                 if (sidebar) sidebar.style.display = 'none';
 
-                // 計算尺寸：canvas 全寬，高度維持 4:3
+                // 計算尺寸：canvas 全寬，高度維持 4:3，頂部留小偏移讓畫面不貼頂
                 const vw  = window.innerWidth;
+                const topOffset = 28; // px，讓遊戲畫面稍微往下移
                 const canH = Math.round(vw * 0.75);
-                const ctrlH = Math.max(window.innerHeight - canH, 190);
+                const ctrlH = Math.max(window.innerHeight - canH - topOffset, 160);
 
-                // 外層包裝器：置頂全寬，高度=canvas高
+                // 外層包裝器
                 if (layoutWrap) {
                     layoutWrap.style.position = 'fixed';
-                    layoutWrap.style.top      = '0';
+                    layoutWrap.style.top      = topOffset + 'px';
                     layoutWrap.style.left     = '0';
                     layoutWrap.style.width    = '100vw';
                     layoutWrap.style.height   = canH + 'px';
@@ -2623,10 +2624,10 @@
                     layoutWrap.style.overflow = 'hidden';
                 }
 
-                // canvas 容器：固定覆蓋整個上半區
+                // canvas 容器：固定在頂部偏移處
                 if (canvasWrap) {
                     canvasWrap.style.position   = 'fixed';
-                    canvasWrap.style.top        = '0';
+                    canvasWrap.style.top        = topOffset + 'px';
                     canvasWrap.style.left       = '0';
                     canvasWrap.style.width      = vw + 'px';
                     canvasWrap.style.height     = canH + 'px';
@@ -2634,13 +2635,14 @@
                     canvasWrap.style.borderRadius = '0';
                     canvasWrap.style.border     = 'none';
                     canvasWrap.style.aspectRatio = 'unset';
+                    canvasWrap.style.overflow   = 'hidden';
                 }
 
                 // 手機控制層：緊接 canvas 正下方
                 if (mobileLayer) {
                     mobileLayer.style.display  = 'block';
                     mobileLayer.style.position = 'fixed';
-                    mobileLayer.style.top      = canH + 'px';
+                    mobileLayer.style.top      = (canH + topOffset) + 'px';
                     mobileLayer.style.bottom   = '0';
                     mobileLayer.style.left     = '0';
                     mobileLayer.style.right    = '0';
@@ -2653,8 +2655,11 @@
                 if (sidebar)     sidebar.style.cssText    = '';
                 if (mobileLayer) mobileLayer.style.cssText = 'display:none;z-index:60';
                 if (layoutWrap)  layoutWrap.style.cssText  = '';
-                if (canvasWrap)  canvasWrap.style.cssText  = '';
+                if (canvasWrap)  { canvasWrap.style.cssText = ''; canvasWrap.style.overflow = 'hidden'; }
                 if (cvs)         { cvs.style.width = ''; cvs.style.height = ''; }
+                // 電腦版：對話框回到 canvas 內部 absolute 定位
+                const dp = document.getElementById('dialoguePanel');
+                if (dp) { dp.style.position = 'absolute'; dp.style.zIndex = '70'; }
             }
         }
 
