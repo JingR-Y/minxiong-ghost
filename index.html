@@ -168,6 +168,9 @@
                 <button onclick="selectAndStartChapter(3)" class="w-full px-5 py-3 bg-purple-950/80 hover:bg-purple-900 text-white font-bold rounded-lg border border-purple-700 hover:border-purple-500 transition duration-300 transform hover:scale-105 active:scale-95 tracking-wider text-sm shadow-lg shadow-purple-900/40">
                     <i class="fa-solid fa-mug-hot mr-2 animate-pulse text-purple-400"></i> 第三章：咖啡雅座最後的客人 ☕
                 </button>
+                <button onclick="selectAndStartChapter(4)" class="w-full px-5 py-3 bg-indigo-950/80 hover:bg-indigo-900 text-white font-bold rounded-lg border border-indigo-700 hover:border-indigo-400 transition duration-300 transform hover:scale-105 active:scale-95 tracking-wider text-sm shadow-lg shadow-indigo-900/40">
+                    <i class="fa-solid fa-scale-balanced mr-2 animate-pulse text-indigo-400"></i> 第四章：地底靈魂審判廳 ⚖️
+                </button>
             </div>
             
             <p class="text-stone-600 text-xs">※ 建議配戴耳機並開啟瀏覽器聲音以獲得最佳恐怖氛圍</p>
@@ -677,6 +680,69 @@
         }
 
         // Play Item Click SFX
+        // ══ 第四章專屬音效 ══
+        function playBabyCry() {
+            try {
+                const ctx2 = new (window.AudioContext||window.webkitAudioContext)();
+                // 嬰兒哭聲：高頻振動 + 顫音
+                const osc = ctx2.createOscillator();
+                const gain = ctx2.createGain();
+                const lfo = ctx2.createOscillator();
+                const lfoGain = ctx2.createGain();
+                lfo.frequency.value = 5;
+                lfoGain.gain.value = 40;
+                lfo.connect(lfoGain); lfoGain.connect(osc.frequency);
+                osc.type = 'sawtooth';
+                osc.frequency.value = 680;
+                osc.frequency.exponentialRampToValueAtTime(420, ctx2.currentTime + 1.5);
+                gain.gain.setValueAtTime(0, ctx2.currentTime);
+                gain.gain.linearRampToValueAtTime(0.15, ctx2.currentTime + 0.1);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx2.currentTime + 2.2);
+                osc.connect(gain); gain.connect(ctx2.destination);
+                lfo.start(); osc.start();
+                osc.stop(ctx2.currentTime + 2.2);
+                lfo.stop(ctx2.currentTime + 2.2);
+            } catch(e) {}
+        }
+        function playChairScrape() {
+            try {
+                const ctx2 = new (window.AudioContext||window.webkitAudioContext)();
+                // 椅子拖動：寬頻噪音 + 低頻摩擦
+                const bufSize = ctx2.sampleRate * 2.5;
+                const buf = ctx2.createBuffer(1, bufSize, ctx2.sampleRate);
+                const data = buf.getChannelData(0);
+                for (let i = 0; i < bufSize; i++) {
+                    const env = Math.max(0, 1 - i/bufSize);
+                    data[i] = (Math.random()*2-1) * env * 0.3;
+                    // 加入低頻摩擦感
+                    if (i % 120 < 60) data[i] *= 1.8;
+                }
+                const src = ctx2.createBufferSource();
+                const filter = ctx2.createBiquadFilter();
+                filter.type = 'lowpass'; filter.frequency.value = 800;
+                src.buffer = buf;
+                src.connect(filter); filter.connect(ctx2.destination);
+                src.start();
+            } catch(e) {}
+        }
+        function playBreathingLoop() {
+            try {
+                const ctx2 = new (window.AudioContext||window.webkitAudioContext)();
+                const osc = ctx2.createOscillator();
+                const gain = ctx2.createGain();
+                osc.type = 'sine'; osc.frequency.value = 180;
+                gain.gain.setValueAtTime(0, ctx2.currentTime);
+                // 三個深呼吸
+                for (let i = 0; i < 3; i++) {
+                    const t = ctx2.currentTime + i * 1.8;
+                    gain.gain.linearRampToValueAtTime(0.08, t + 0.6);
+                    gain.gain.linearRampToValueAtTime(0.02, t + 1.4);
+                }
+                osc.connect(gain); gain.connect(ctx2.destination);
+                osc.start(); osc.stop(ctx2.currentTime + 5.4);
+            } catch(e) {}
+        }
+
         function playClickSound() {
             if(!audioCtx) return;
             try {
@@ -764,6 +830,28 @@
         let cafeFlicker = 1.0;          // 燈光閃爍強度（1.0=正常）
         let cafeFlickerTimer = 0;
         let assimNotified30 = false;
+
+        // ══ 第四章狀態 ══
+        let ch4EvidencePresented = new Set(); // 已呈堂的證據 altar id
+        let ch4WitnessSpoken = new Set();     // 已詢問的證人 id
+        let ch4JudgePhase = 0;               // 0=冷漠 1=激動 2=動搖 3=裁決
+        let ch4PortalOpen = false;           // 逃出結局門是否開啟
+        let ch4Ended = false;               // 章節已結束
+        let ch4TorchFlicker = 1.0;
+        let ch4TorchTimer = 0;
+        let ch4SpiritParticles = [];        // 飄浮靈魂粒子
+        let ch4FifthChairShown = false;     // 第五張椅子是否已生成
+        let ch4ControlsReversed = false;    // 方向鍵顛倒
+        let ch4ControlsTimer = 0;           // 顛倒倒計時（幀數）
+        let ch4HandsShown = false;          // 封印門之手是否已出現
+        let ch4MysterySpawned = false;      // 神秘實體是否已生成
+        let ch4ElderFaceFlipped = false;    // 老人變臉是否已觸發
+        let ch4TiltAngle = 0;              // 畫面傾斜角度
+        let ch4EdgeFaceAlpha = 0;           // 邊緣臉孔透明度
+        let ch4MonologueTriggered = false;  // 角落獨白是否已觸發
+        let ch4HandsTriggered = false;      // 封印門之手是否已出現
+        let ch4WallTextTimer = 0;           // 石壁倒寫文字倒計時
+        let ch4LowSanityReverseUsed = false;// 低理智方向顛倒是否已觸發
         let assimNotified60 = false;
         let assimNotified85 = false;
 
@@ -885,6 +973,25 @@
                 [1,5,5,5,5,5,0,0,0,0,0,0,0,5,5,5,5,5,5,1],
                 [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
                 [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,1,1,1,1,1,1,1,1,3,3,1,1,1,1,1,1,1,1,1],
+                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+            ],
+            // ══ 第四章：地底靈魂審判廳 ══
+            // 1=石牆, 2=儀式邊框, 7=石柱(實心), 3=傳送門(ch4PortalOpen前實心), 0=地板
+            tribunal_interior: [
+                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+                [1,2,0,0,0,0,0,7,7,0,0,7,7,0,0,0,0,0,2,1],
+                [1,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,0,7,7,0,0,0,0,0,0,0,0,0,0,0,0,7,7,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,0,7,7,0,0,0,0,0,0,0,0,0,0,0,0,7,7,0,1],
                 [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
                 [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
                 [1,1,1,1,1,1,1,1,1,3,3,1,1,1,1,1,1,1,1,1],
@@ -1142,6 +1249,12 @@
 
             if (col < 0 || col >= MAP_COLS || row < 0 || row >= MAP_ROWS) return true;
 
+            if (currentChapter === 4) {
+                const tile = mapData.tribunal_interior[row][col];
+                if (tile === 1 || tile === 2 || tile === 7) return true;
+                if (tile === 3 && !ch4PortalOpen) return true;
+                return false;
+            }
             if (currentChapter === 3) {
                 const tile = mapData.cafe_interior[row][col];
                 return tile === 1 || tile === 2 || tile === 5 || tile === 3;
@@ -1175,10 +1288,11 @@
             player.dirX = 0;
             player.dirY = 0;
 
-            if (keys['w'] || keys['arrowup']) player.dirY = -1;
-            if (keys['s'] || keys['arrowdown']) player.dirY = 1;
-            if (keys['a'] || keys['arrowleft']) player.dirX = -1;
-            if (keys['d'] || keys['arrowright']) player.dirX = 1;
+            const _rev = ch4ControlsReversed ? -1 : 1;
+            if (keys['w'] || keys['arrowup']) player.dirY = -1 * _rev;
+            if (keys['s'] || keys['arrowdown']) player.dirY = 1 * _rev;
+            if (keys['a'] || keys['arrowleft']) player.dirX = -1 * _rev;
+            if (keys['d'] || keys['arrowright']) player.dirX = 1 * _rev;
 
             if (player.dirX !== 0 || player.dirY !== 0) {
                 const length = Math.sqrt(player.dirX * player.dirX + player.dirY * player.dirY);
@@ -1571,6 +1685,31 @@
                     showNotification("（已調查過）");
                 }
             }
+            // ══ 第四章互動 ══
+            else if (currentChapter === 4) {
+                if (ent.id === 'c4_judge') {
+                    const phase = Math.min(ch4JudgePhase, ent.phaseDialogue.length - 1);
+                    triggerDialogue(ent.phaseDialogue[phase]);
+                } else if (ent.id === 'c4_portal') {
+                    triggerDialogue(ch4PortalOpen ? ent.openDialogue : ent.closedDialogue);
+                } else if ((ent.id === 'c4_witness_lian' || ent.id === 'c4_witness_elder') && !ent.solved) {
+                    triggerDialogue(ent.dialogue);
+                } else if (['c4_altar_well','c4_altar_talisman','c4_altar_menu','c4_altar_diary'].includes(ent.id) && !ent.solved) {
+                    triggerDialogue(ent.dialogue);
+                } else if (ent.id === 'c4_nth_soul' && !ent.solved) {
+                    lastTriggeredId = 'c4_nth_soul';
+                    triggerDialogue(ent.dialogue);
+                    ent.solved = true;
+                    setTimeout(() => {
+                        const idx = entities.findIndex(e => e.id === 'c4_nth_soul');
+                        if (idx >= 0) entities.splice(idx, 1);
+                    }, 4000);
+                } else if (ent.solved) {
+                    showNotification("（已調查過）");
+                } else if (ent.dialogue) {
+                    triggerDialogue(ent.dialogue);
+                }
+            }
         }
 
     // 🌟 女主人畫像 Jumpscare 驚嚇事件
@@ -1765,6 +1904,152 @@
                 if (!cafeEndingTriggered) {
                     cafeEndingTriggered = true;
                     setTimeout(() => { triggerChapter3Ending(); }, 600);
+                }
+            }
+            // ══ 第四章對話後事件 ══
+            else if (lastTriggeredId === 'c4_judge') {
+                if (ch4JudgePhase < 3) {
+                    ch4JudgePhase++;
+                    const score = ch4EvidencePresented.size + ch4WitnessSpoken.size;
+                    if (ch4JudgePhase === 1) {
+                        // 第一次面見：跳嚇
+                        playScreamerSound();
+                        ch4EdgeFaceAlpha = 0.9;
+                        sanity = Math.max(5, sanity - 10);
+                        showNotification("👁️ 冥判官的眼睛看向了你……你感到脊椎一陣冰涼。");
+                        // 更新法官任務文字顯示進度
+                        const jqt = document.getElementById('quest_c4_judge');
+                        if (jqt) jqt.querySelector('span').textContent = `⚖️ 面見冥判官三次（${ch4JudgePhase}/3）`;
+                        const qi = document.getElementById('qIcon_c4_judge');
+                        const qt = document.getElementById('quest_c4_judge');
+                        if (ch4JudgePhase >= 3 && qi && qt) { qi.className='fa-regular fa-square-check text-green-500 mt-0.5'; qt.className='flex items-start gap-1.5 font-bold text-stone-400 mt-1 line-through'; }
+                    } else if (ch4JudgePhase === 2) {
+                        // 第二次面見：第五張椅子出現
+                        playScreamerSound();
+                        sanity = Math.max(5, sanity - 8);
+                        if (!ch4FifthChairShown) {
+                            ch4FifthChairShown = true;
+                            showNotification("😱 審判台後方憑空出現了第五張空椅子……");
+                        }
+                        ch4ControlsReversed = true;
+                        ch4ControlsTimer = 480;
+                        showNotification("🔄 方向感完全顛倒了！你感到空間被扭曲……");
+                    } else if (ch4JudgePhase === 3 && !ch4Ended) {
+                        ch4Ended = true;
+                        // 第五張椅子上出現人影（一秒，無說明）
+                        const fifthEnt = entities.find(e => e.id === 'c4_fifth_figure');
+                        if (!fifthEnt) {
+                            entities.push({
+                                id: 'c4_fifth_figure',
+                                x: 9 * TILE_SIZE + 20, y: 5 * TILE_SIZE,
+                                width: TILE_SIZE, height: TILE_SIZE,
+                                chapter: 4, solved: true, icon: '🪑',
+                            });
+                            setTimeout(() => {
+                                const fi = entities.findIndex(e => e.id === 'c4_fifth_figure');
+                                if (fi >= 0) entities[fi].icon = '👤';
+                                setTimeout(() => {
+                                    const fi2 = entities.findIndex(e => e.id === 'c4_fifth_figure');
+                                    if (fi2 >= 0) entities.splice(fi2, 1);
+                                    // 然後才給結局
+                                    if (score >= 3) {
+                                        triggerChapter4FreedomEnding();
+                                    } else {
+                                        playScreamerSound();
+                                        ch4EdgeFaceAlpha = 1.0;
+                                        setTimeout(() => { triggerChapter4CondemnedEnding(); }, 600);
+                                    }
+                                }, 1000);
+                            }, 200);
+                        }
+                    }
+                }
+            }
+            else if (lastTriggeredId === 'c4_witness_lian' || lastTriggeredId === 'c4_witness_elder') {
+                const ent = entities.find(e => e.id === lastTriggeredId);
+                if (ent && !ent.solved) {
+                    ent.solved = true;
+                    ch4WitnessSpoken.add(lastTriggeredId);
+                    ent.icon = '✅';
+                    showNotification(`📣 證人陳述完畢（已詢問 ${ch4WitnessSpoken.size}/2 位）`);
+                    // 個別證人勾選
+                    const wQi = document.getElementById('qIcon_' + lastTriggeredId);
+                    const wQt = document.getElementById('quest_' + lastTriggeredId);
+                    if (wQi) wQi.className = 'fa-regular fa-square-check text-green-500 mt-0.5';
+                    if (wQt) wQt.className = 'flex items-start gap-1.5 pl-4 line-through text-stone-600';
+                    // 全部詢問後勾選總任務
+                    const qi = document.getElementById('qIcon_c4_witness');
+                    const qt = document.getElementById('quest_c4_witness');
+                    if (ch4WitnessSpoken.size >= 2 && qi && qt) {
+                        qi.className='fa-regular fa-square-check text-green-500 mt-0.5';
+                        qt.className='flex items-start gap-1.5 font-bold text-stone-400 mt-1 line-through';
+                    }
+                    // 老人變臉跳嚇
+                    if (lastTriggeredId === 'c4_witness_elder' && !ch4ElderFaceFlipped) {
+                        ch4ElderFaceFlipped = true;
+                        setTimeout(() => {
+                            // 先變成阿誠的臉
+                            ent.icon = '🧑‍🎓';
+                            showNotification("（那張臉……是你自己的臉。）");
+                            setTimeout(() => {
+                                // 1.5秒後恢復，然後再變成怪物
+                                ent.icon = '🧓';
+                                setTimeout(() => {
+                                    playScreamerSound();
+                                    ent.icon = '👹';
+                                    ch4EdgeFaceAlpha = 0.9;
+                                    sanity = Math.max(5, sanity - 15);
+                                    ch4WallTextTimer = 150;
+                                    showNotification("😱 老人的臉崩裂了——那根本不是人！");
+                                }, 1500);
+                            }, 1200);
+                        }, 600);
+                    }
+                }
+            }
+            else if (['c4_altar_well','c4_altar_talisman','c4_altar_menu','c4_altar_diary'].includes(lastTriggeredId)) {
+                const ent = entities.find(e => e.id === lastTriggeredId);
+                if (ent && !ent.solved) {
+                    ent.solved = true;
+                    ch4EvidencePresented.add(lastTriggeredId);
+                    ent.icon = '✨';
+                    const total = ch4EvidencePresented.size;
+                    showNotification(`📜 獲得證物：${ent.evidenceName}（累計 ${total}/4 份）`);
+                    // 勾選個別證物任務項目
+                    const altarQi = document.getElementById('qIcon_' + lastTriggeredId);
+                    const altarQt = document.getElementById('quest_' + lastTriggeredId);
+                    if (altarQi) altarQi.className = 'fa-regular fa-square-check text-green-500 mt-0.5';
+                    if (altarQt) altarQt.className = 'flex items-start gap-1.5 pl-4 line-through text-stone-600';
+                    // 達到 2 份後勾選總任務
+                    const qi = document.getElementById('qIcon_c4_evidence');
+                    const qt = document.getElementById('quest_c4_evidence');
+                    if (total >= 2 && qi && qt) {
+                        qi.className='fa-regular fa-square-check text-green-500 mt-0.5';
+                        qt.className='flex items-start gap-1.5 font-bold text-stone-400 mt-1 line-through';
+                    }
+                    setTimeout(() => {
+                        playScreamerSound();
+                        sanity = Math.max(5, sanity - 6);
+                        ch4EdgeFaceAlpha = Math.min(1.0, ch4EdgeFaceAlpha + 0.4);
+                    }, 500);
+                    if (total === 2 && ch4JudgePhase < 1) {
+                        setTimeout(() => showNotification("⚖️ 已收集足夠證物，前往審判台與冥判官對話！"), 1000);
+                    }
+                    // 第三份證物：角落出現虛空問句實體
+                    if (total >= 3 && !entities.find(e => e.id === 'c4_nth_soul')) {
+                        entities.push({
+                            id: 'c4_nth_soul',
+                            x: 1 * TILE_SIZE + 4, y: 3 * TILE_SIZE,
+                            width: TILE_SIZE, height: TILE_SIZE,
+                            chapter: 4, solved: false, icon: '🕳️',
+                            dialogue: [
+                                { speaker: '虛空', avatar: '🕳️', text: '「你是第幾個？」' },
+                                { speaker: '虛空', avatar: '🕳️', text: '（它沒有等你回答。它消失了。）' },
+                            ]
+                        });
+                        ch4WallTextTimer = 100;
+                        showNotification("⚠️ 地圖左上角……有什麼東西出現了。");
+                    }
                 }
             }
 
@@ -2106,12 +2391,14 @@
                                 ★ 第三章完結：被困其中 ──「等待最後一位客人入座」
                             </div>
                             <p style="color:#3d2d5a;font-size:0.75rem;margin-bottom:16px">……大古的下落，依然是個謎。</p>
-                            <div style="border:1px dashed #3b0764;background:rgba(30,10,60,0.4);padding:10px 20px;border-radius:8px;margin-bottom:22px;font-size:0.72rem;color:#7c3aed;letter-spacing:0.05em">
-                                🛠️ 第四章正在開發中，敬請期待……
+                            <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+                                <button onclick="continueToChapter4()" style="padding:12px 24px;background:#1e1040;border:1px solid #7c3aed;color:#c4b5fd;font-weight:bold;border-radius:8px;cursor:pointer;font-family:'Noto Serif TC',serif">
+                                    繼續第四章：靈魂審判 ⚖️
+                                </button>
+                                <button onclick="location.reload()" style="padding:12px 24px;background:#1a0a2e;border:1px solid #4c1d95;color:#a78bfa;font-weight:bold;border-radius:8px;cursor:pointer;font-family:'Noto Serif TC',serif">
+                                    重新挑戰 (Retry)
+                                </button>
                             </div>
-                            <button onclick="location.reload()" style="padding:12px 32px;background:#1a0a2e;border:1px solid #6d28d9;color:white;font-weight:bold;border-radius:8px;cursor:pointer;font-family:'Noto Serif TC',serif">
-                                重新挑戰 (Retry)
-                            </button>
                         </div>
                     </div>`;
                 }, 2200);
@@ -2140,11 +2427,16 @@
                             你的記憶還在，但你的腳再也離不開這個地方了。某一天，又一個好奇的人推開了門走進來——你緩緩抬起頭，看向他。
                         </p>
                         <div style="border:1px dashed #3b0764;background:rgba(30,10,60,0.4);padding:10px 20px;border-radius:8px;margin-bottom:20px;font-size:0.72rem;color:#7c3aed;letter-spacing:0.05em">
-                            🛠️ 第四章正在開發中，敬請期待……
+                            ⚖️ 意識雖然融合，但靈魂尚存——前往第四章，在地底審判廳尋找歸路……
                         </div>
-                        <button onclick="location.reload()" style="padding:12px 32px;background:#1a0a2e;border:1px solid #6d28d9;color:white;font-weight:bold;border-radius:8px;cursor:pointer;font-family:'Noto Serif TC',serif">
-                            重新挑戰 (Retry)
-                        </button>
+                        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+                            <button onclick="continueToChapter4()" style="padding:12px 24px;background:#1e1040;border:1px solid #7c3aed;color:#c4b5fd;font-weight:bold;border-radius:8px;cursor:pointer;font-family:'Noto Serif TC',serif">
+                                繼續第四章：靈魂審判 ⚖️
+                            </button>
+                            <button onclick="location.reload()" style="padding:12px 24px;background:#1a0a2e;border:1px solid #4c1d95;color:white;font-weight:bold;border-radius:8px;cursor:pointer;font-family:'Noto Serif TC',serif">
+                                重新挑戰 (Retry)
+                            </button>
+                        </div>
                     </div>
                 </div>`;
             }, 2800);
@@ -2259,6 +2551,300 @@
             location.reload();
         }
 
+        // 第三章結束後直接跳第四章
+        function continueToChapter4() {
+            sessionStorage.setItem('startChapter', '4');
+            location.reload();
+        }
+
+        // ══ 第四章：地底靈魂審判廳 ══
+        function startChapter4() {
+            isWarping = true;
+            playTimelineWarpSound();
+            const overlay = document.getElementById('warpOverlay');
+            if (overlay) { overlay.classList.remove('opacity-0'); overlay.classList.add('opacity-100'); }
+
+            setTimeout(() => {
+                currentChapter = 4;
+                currentEra = ERAS.MODERN;
+                ghostActive = false;
+                sanity = 100;
+                hp = 100;
+                battery = 100;
+                assimilation = 0;
+
+                // 重置第四章狀態
+                ch4EvidencePresented = new Set();
+                ch4WitnessSpoken = new Set();
+                ch4JudgePhase = 0;
+                ch4PortalOpen = false;
+                ch4Ended = false;
+                ch4TorchFlicker = 1.0;
+                ch4TorchTimer = 0;
+                ch4SpiritParticles = [];
+                ch4FifthChairShown = false;
+                ch4ControlsReversed = false;
+                ch4ControlsTimer = 0;
+                ch4HandsShown = false;
+                ch4MysterySpawned = false;
+                ch4ElderFaceFlipped = false;
+                ch4TiltAngle = 0;
+                ch4EdgeFaceAlpha = 0;
+                ch4MonologueTriggered = false;
+                ch4HandsTriggered = false;
+                ch4WallTextTimer = 0;
+                ch4LowSanityReverseUsed = false;
+
+                const TS = TILE_SIZE;
+                player.x = 9 * TS + 8;
+                player.y = 11 * TS;
+
+                const dot = document.getElementById('timelineDot');
+                const text = document.getElementById('timelineText');
+                if (dot) dot.className = 'w-3.5 h-3.5 rounded-full bg-indigo-600 animate-pulse';
+                if (text) { text.textContent = '當前時空：地底靈魂審判廳'; text.className = 'text-xs font-bold tracking-widest text-indigo-400'; }
+
+                const qList = document.getElementById('questList');
+                if (qList) qList.innerHTML = `
+                    <li class="flex items-start gap-1.5 font-bold text-stone-300 mt-1" id="quest_c4_evidence">
+                        <i class="fa-regular fa-square text-stone-600 mt-0.5" id="qIcon_c4_evidence"></i>
+                        <span>呈遞證物（至少 2 份）</span>
+                    </li>
+                    <li class="flex items-start gap-1.5 pl-4" id="quest_c4_altar_well">
+                        <i class="fa-regular fa-square text-stone-600 mt-0.5" id="qIcon_c4_altar_well"></i>
+                        <span>🪣 古井碎石（左側神壇）</span>
+                    </li>
+                    <li class="flex items-start gap-1.5 pl-4" id="quest_c4_altar_talisman">
+                        <i class="fa-regular fa-square text-stone-600 mt-0.5" id="qIcon_c4_altar_talisman"></i>
+                        <span>📜 硃砂避邪符（右側神壇）</span>
+                    </li>
+                    <li class="flex items-start gap-1.5 pl-4" id="quest_c4_altar_menu">
+                        <i class="fa-regular fa-square text-stone-600 mt-0.5" id="qIcon_c4_altar_menu"></i>
+                        <span>📋 咖啡雅座菜單（左下神壇）</span>
+                    </li>
+                    <li class="flex items-start gap-1.5 pl-4 mb-1" id="quest_c4_altar_diary">
+                        <i class="fa-regular fa-square text-stone-600 mt-0.5" id="qIcon_c4_altar_diary"></i>
+                        <span>📓 大古的日記殘頁（右下神壇）</span>
+                    </li>
+                    <li class="flex items-start gap-1.5 font-bold text-stone-300 mt-1" id="quest_c4_witness">
+                        <i class="fa-regular fa-square text-stone-600 mt-0.5" id="qIcon_c4_witness"></i>
+                        <span>亡靈作證（各 1 次）</span>
+                    </li>
+                    <li class="flex items-start gap-1.5 pl-4" id="quest_c4_witness_lian">
+                        <i class="fa-regular fa-square text-stone-600 mt-0.5" id="qIcon_c4_witness_lian"></i>
+                        <span>👧 小蓮的殘影</span>
+                    </li>
+                    <li class="flex items-start gap-1.5 pl-4 mb-1" id="quest_c4_witness_elder">
+                        <i class="fa-regular fa-square text-stone-600 mt-0.5" id="qIcon_c4_witness_elder"></i>
+                        <span>🧓 老族長的影子</span>
+                    </li>
+                    <li class="flex items-start gap-1.5 font-bold text-stone-300 mt-1" id="quest_c4_judge">
+                        <i class="fa-regular fa-square text-stone-600 mt-0.5" id="qIcon_c4_judge"></i>
+                        <span>⚖️ 面見冥判官三次（${ch4JudgePhase}/3）</span>
+                    </li>
+                `;
+
+                entities.length = 0;
+                entities.push(
+                    // 冥判官
+                    {
+                        id: 'c4_judge',
+                        x: 9 * TS + 4, y: 2 * TS + 4,
+                        width: TS, height: TS,
+                        chapter: 4, icon: '⚖️',
+                        phaseDialogue: [
+                            [
+                                { speaker: '冥判官', avatar: '⚖️', text: '（巨大的石台後，一個沒有面孔的審判者緩緩抬起頭——祂的眼眶是兩個深不見底的黑洞。）' },
+                                { speaker: '冥判官', avatar: '⚖️', text: '「你闖入了不屬於活人的地方。報上你的罪——或者，用你帶來的證物為自己辯護。」' },
+                                { speaker: '阿誠', avatar: '😰', text: '（我的聲音在這個石窟裡根本不存在……我必須用行動說話。）' },
+                            ],
+                            [
+                                { speaker: '冥判官', avatar: '⚖️', text: '（祂翻動一本用皮肉裝訂的審判書，一頁頁的臉孔在紙上無聲地哭喊著……）' },
+                                { speaker: '冥判官', avatar: '👁️', text: '「有趣……你帶來了一些東西。繼續。讓我看看你是否值得被——赦免。」' },
+                            ],
+                            [
+                                { speaker: '冥判官', avatar: '⚖️', text: '（祂站了起來。整個審判廳的火炬同時熄滅，然後重新燃起——是紫色的火焰。）' },
+                                { speaker: '冥判官', avatar: '💀', text: '「夠了。陳述已完畢。我將作出最終裁決……」' },
+                                { speaker: '阿誠', avatar: '😱', text: '（審判台上方的空氣開始扭曲……這就是終局了。）' },
+                            ],
+                        ]
+                    },
+                    // 證人：小蓮
+                    {
+                        id: 'c4_witness_lian',
+                        x: 3 * TS, y: 5 * TS,
+                        width: TS, height: TS,
+                        chapter: 4, solved: false, icon: '👧',
+                        dialogue: [
+                            { speaker: '小蓮的殘影', avatar: '👧', text: '（她的樣貌比你記憶中的更透明，像是快要消散的水霧……）' },
+                            { speaker: '小蓮的殘影', avatar: '👧', text: '「阿誠……我沒想到你真的追來了……這裡不是你應該在的地方。」' },
+                            { speaker: '小蓮的殘影', avatar: '💧', text: '「但是既然你來了……就幫我作個見證吧。告訴判官：把我推入井裡的，不是我自己的意志。」' },
+                        ]
+                    },
+                    // 證人：老族長
+                    {
+                        id: 'c4_witness_elder',
+                        x: 16 * TS, y: 5 * TS,
+                        width: TS, height: TS,
+                        chapter: 4, solved: false, icon: '🧓',
+                        dialogue: [
+                            { speaker: '老族長的影子', avatar: '🧓', text: '（一個佝僂的老人影子，跪坐在石柱旁，反覆喃喃著什麼……）' },
+                            { speaker: '老族長的影子', avatar: '🧓', text: '「……是我……是我把她推進去的……族長說，那年要獻一個……乾淨的靈魂……」' },
+                            { speaker: '老族長的影子', avatar: '😱', text: '「……求求你不要再問了……」（他猛然抬頭——）' },
+                        ]
+                    },
+                    // 祭壇：古井遺物
+                    {
+                        id: 'c4_altar_well',
+                        x: 2 * TS, y: 9 * TS,
+                        width: TS, height: TS,
+                        chapter: 4, solved: false, icon: '🪣', evidenceName: '古井碎石',
+                        dialogue: [
+                            { speaker: '系統', avatar: '🪣', text: '（祭壇上擺著一塊從古井取出的青苔石壁碎片——上面有一道指甲劃出的深痕，長達三十公分。）' },
+                            { speaker: '阿誠', avatar: '😰', text: '（這是有人在這裡死去之前，用盡全力的最後掙扎……）' },
+                            { speaker: '阿誠', avatar: '🧑‍🎓', text: '（將此物呈堂作為物證。）' },
+                        ]
+                    },
+                    // 祭壇：避邪符咒
+                    {
+                        id: 'c4_altar_talisman',
+                        x: 17 * TS, y: 9 * TS,
+                        width: TS, height: TS,
+                        chapter: 4, solved: false, icon: '📜', evidenceName: '硃砂避邪符',
+                        dialogue: [
+                            { speaker: '系統', avatar: '📜', text: '（一張佈滿硃砂符文的黃紙——這是日治時代的巫術祭儀用品，用於「封印不願消散的靈魂」。）' },
+                            { speaker: '阿誠', avatar: '🧑‍🎓', text: '（把符咒上的咒語念給判官聽。這是封她的，不是救她的。）' },
+                        ]
+                    },
+                    // 祭壇：咖啡菜單
+                    {
+                        id: 'c4_altar_menu',
+                        x: 2 * TS, y: 11 * TS + 24,
+                        width: TS, height: TS,
+                        chapter: 4, solved: false, icon: '📋', evidenceName: '咖啡雅座菜單',
+                        dialogue: [
+                            { speaker: '系統', avatar: '📋', text: '（一份泛黃的菜單——最後一頁用血寫著名字：林小蓮、劉大古……還有其他你不認識的人名。）' },
+                            { speaker: '阿誠', avatar: '😰', text: '（這不只是菜單，這是一份名冊——被困在這裡的靈魂，都登記在這裡。）' },
+                        ]
+                    },
+                    // 祭壇：大古的日記
+                    {
+                        id: 'c4_altar_diary',
+                        x: 17 * TS, y: 11 * TS + 24,
+                        width: TS, height: TS,
+                        chapter: 4, solved: false, icon: '📓', evidenceName: '大古的日記殘頁',
+                        dialogue: [
+                            { speaker: '系統', avatar: '📓', text: '（大古失蹤前的日記最後一頁——「古井不是起點……真正的獻祭儀式，在更深的地方……」）' },
+                            { speaker: '阿誠', avatar: '😱', text: '（大古……你早就知道了這一切。你在哪裡？）' },
+                        ]
+                    },
+                    // 傳送門（逃出口）
+                    {
+                        id: 'c4_portal',
+                        x: 9 * TS, y: 12 * TS + 8,
+                        width: 2 * TS, height: TS,
+                        chapter: 4, icon: '🌀',
+                        closedDialogue: [
+                            { speaker: '阿誠', avatar: '😰', text: '（傳送門紋絲不動，被一股看不見的力量封鎖著。）' },
+                            { speaker: '阿誠', avatar: '🧑‍🎓', text: '（唯有說服判官赦免，這道門才會開啟。）' },
+                        ],
+                        openDialogue: [
+                            { speaker: '阿誠', avatar: '✨', text: '（傳送門發出溫暖的紫光，那是通往生者世界的出口……）' },
+                            { speaker: '阿誠', avatar: '🧑‍🎓', text: '（穿越過去，就能回到陽間了。）' },
+                        ]
+                    }
+                );
+
+                if (overlay) { overlay.classList.remove('opacity-100'); overlay.classList.add('opacity-0'); }
+                isWarping = false;
+
+                // 嬰兒哭聲 → 然後完全靜默 → 然後開場對話
+                setTimeout(() => {
+                    playBabyCry();
+                    setTimeout(() => {
+                        triggerDialogue([
+                            { speaker: '系統提示', avatar: '⚖️', text: '【第四章：地底靈魂審判廳】' },
+                    { speaker: '阿誠', avatar: '😱', text: '（你睜開眼睛——四周是無盡的石牆，火炬燃著詭異的紫焰，空氣中瀰漫著陳年的香灰氣味。）' },
+                    { speaker: '阿誠', avatar: '😰', text: '（審判台正前方，一個沒有面孔的存在正低頭翻閱著什麼……你知道你被帶到這裡來，是被審判的。）' },
+                    { speaker: '系統提示', avatar: '⚠️', text: '調查四個祭壇 📜 蒐集證物，詢問兩位證人，再三次面見冥判官 ⚖️ 進行辯護——蒐集足夠證據方能獲判無罪！' },
+                        ]);
+                    }, 2800); // 靜默 2.8 秒後出現對話
+                }, 500);
+            }, 800);
+        }
+
+        // 第四章：自由結局（獲判無罪）
+        function triggerChapter4FreedomEnding() {
+            isGameOver = true;
+            clearInterval(randomSpookTimer);
+            ch4PortalOpen = true;
+            setTimeout(() => {
+                document.querySelector('body').innerHTML = `
+                <div style="position:fixed;inset:0;background:#050210;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:24px;text-align:center;font-family:'Noto Serif TC',serif">
+                    <div style="max-width:520px">
+                        <span style="font-size:4rem;display:block;margin-bottom:16px">🌅</span>
+                        <h1 style="font-family:'Cinzel','Noto Serif TC',serif;font-size:2.2rem;font-weight:900;color:#a78bfa;letter-spacing:0.25em;margin-bottom:16px">
+                            黎 明 的 出 口
+                        </h1>
+                        <p style="color:#c4b5fd;line-height:1.9;margin-bottom:14px;font-size:0.9rem">
+                            冥判官緩緩合上審判書。「……罪責已清。」
+                        </p>
+                        <p style="color:#7c6d9e;font-size:0.85rem;line-height:1.8;margin-bottom:14px">
+                            傳送門在沉默中洞開，溫暖的紫光充斥了整個審判廳。小蓮的殘影在消散前，向你輕輕地點了點頭。
+                        </p>
+                        <p style="color:#6d5fa0;font-size:0.82rem;line-height:1.8;margin-bottom:24px">
+                            你穿越了門。陽光刺眼——你發現自己站在民雄鬼屋廢墟前，天色正要破曉。大古的背包就在你腳邊。
+                        </p>
+                        <div style="border:1px solid #4c1d95;background:rgba(20,10,50,0.5);padding:10px 20px;border-radius:8px;margin-bottom:24px;font-size:0.8rem;color:#a78bfa">
+                            🎉 恭喜通關《民雄鬼屋異聞錄：第四章 靈魂審判》！
+                        </div>
+                        <button onclick="location.reload()" style="padding:12px 32px;background:#1e1040;border:1px solid #7c3aed;color:white;font-weight:bold;border-radius:8px;cursor:pointer;font-family:'Noto Serif TC',serif;margin-right:12px">
+                            重新遊玩
+                        </button>
+                    </div>
+                </div>`;
+            }, 800);
+        }
+
+        // 第四章：被定罪結局（證據不足）
+        function triggerChapter4CondemnedEnding() {
+            isGameOver = true;
+            clearInterval(randomSpookTimer);
+            playChairScrape();
+            // 3 秒純黑 + 呼吸聲，然後才出現結局畫面
+            const blackDiv = document.createElement('div');
+            blackDiv.style.cssText = 'position:fixed;inset:0;background:#000;z-index:9999;transition:none';
+            document.body.appendChild(blackDiv);
+            setTimeout(() => { playBreathingLoop(); }, 400);
+            setTimeout(() => {
+                blackDiv.remove();
+                document.querySelector('body').innerHTML = `
+                <div style="position:fixed;inset:0;background:#020108;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:24px;text-align:center;font-family:'Noto Serif TC',serif">
+                    <div style="max-width:520px">
+                        <span style="font-size:4rem;display:block;margin-bottom:16px">💀</span>
+                        <h1 style="font-family:'Cinzel','Noto Serif TC',serif;font-size:2.2rem;font-weight:900;color:#4c1d95;letter-spacing:0.25em;margin-bottom:16px">
+                            第 六 個 位 子
+                        </h1>
+                        <p style="color:#7c6d9e;line-height:1.9;margin-bottom:14px;font-size:0.9rem">
+                            冥判官緩緩站起來。「……辯護不足。」
+                        </p>
+                        <p style="color:#4a3a6e;font-size:0.85rem;line-height:1.8;margin-bottom:14px">
+                            審判廳的出口緩緩閉合。第六張椅子從地底升起——上面刻著你的名字。
+                        </p>
+                        <p style="color:#3a2a55;font-size:0.82rem;line-height:1.8;margin-bottom:24px">
+                            你在咖啡雅座旁邊坐了下來，成為了審判廳裡永久的第六個靈魂。下一個闖入者，將會看到你坐在那裡。
+                        </p>
+                        <div style="border:1px dashed #3b0764;background:rgba(15,5,30,0.5);padding:10px 20px;border-radius:8px;margin-bottom:24px;font-size:0.75rem;color:#6d28d9">
+                            💡 提示：蒐集更多證物（祭壇 📜）並詢問兩位證人，可獲得自由結局
+                        </div>
+                        <button onclick="location.reload()" style="padding:12px 32px;background:#0d0520;border:1px solid #4c1d95;color:#c4b5fd;font-weight:bold;border-radius:8px;cursor:pointer;font-family:'Noto Serif TC',serif">
+                            再次挑戰
+                        </button>
+                    </div>
+                </div>`;
+            }, 3200); // 3 秒黑暗 + 椅子聲後顯示結局
+        }
+
         // 🌟 關卡選擇選單處理機制
         function selectAndStartChapter(chapterNum) {
             playClickSound();
@@ -2280,6 +2866,8 @@
                 startChapter2();
             } else if (chapterNum === 3) {
                 startChapter3();
+            } else if (chapterNum === 4) {
+                startChapter4();
             }
         }
 
@@ -2357,6 +2945,75 @@
         function drawTile(type, x, y) {
             const drawX = x - camera.x;
             const drawY = y - camera.y;
+
+            if (currentChapter === 4) {
+                // Chapter 4: 地底靈魂審判廳
+                switch(type) {
+                    case 0: // 地底石板地板
+                        ctx.fillStyle = '#0a0810';
+                        ctx.fillRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+                        ctx.strokeStyle = '#14102a';
+                        ctx.lineWidth = 0.5;
+                        ctx.strokeRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+                        // 微光符文裂縫
+                        if ((Math.floor(x/TILE_SIZE) + Math.floor(y/TILE_SIZE)) % 3 === 0) {
+                            ctx.strokeStyle = 'rgba(80,40,160,0.18)';
+                            ctx.lineWidth = 0.5;
+                            ctx.beginPath();
+                            ctx.moveTo(drawX+8, drawY+TILE_SIZE/2);
+                            ctx.lineTo(drawX+TILE_SIZE-8, drawY+TILE_SIZE/2);
+                            ctx.stroke();
+                        }
+                        break;
+                    case 1: // 石牆
+                        ctx.fillStyle = '#060510';
+                        ctx.fillRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+                        ctx.strokeStyle = '#100c20';
+                        ctx.lineWidth = 1;
+                        ctx.strokeRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+                        ctx.fillStyle = '#0c0a1c';
+                        ctx.fillRect(drawX+4, drawY+4, TILE_SIZE-8, TILE_SIZE-8);
+                        break;
+                    case 2: // 儀式邊框
+                        ctx.fillStyle = '#0e0b1e';
+                        ctx.fillRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+                        // 靛紫符文花紋
+                        ctx.strokeStyle = 'rgba(90,50,180,0.3)';
+                        ctx.lineWidth = 0.6;
+                        ctx.strokeRect(drawX+3, drawY+3, TILE_SIZE-6, TILE_SIZE-6);
+                        ctx.beginPath();
+                        ctx.moveTo(drawX+TILE_SIZE/2, drawY+5);
+                        ctx.lineTo(drawX+5, drawY+TILE_SIZE-5);
+                        ctx.lineTo(drawX+TILE_SIZE-5, drawY+TILE_SIZE-5);
+                        ctx.closePath();
+                        ctx.stroke();
+                        break;
+                    case 7: // 石柱
+                        ctx.fillStyle = '#12101e';
+                        ctx.fillRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+                        ctx.fillStyle = '#1e1a30';
+                        ctx.fillRect(drawX+6, drawY+6, TILE_SIZE-12, TILE_SIZE-12);
+                        ctx.strokeStyle = '#3a2870';
+                        ctx.lineWidth = 1;
+                        ctx.strokeRect(drawX+6, drawY+6, TILE_SIZE-12, TILE_SIZE-12);
+                        // 柱頂裝飾
+                        ctx.fillStyle = 'rgba(100,70,200,0.25)';
+                        ctx.fillRect(drawX+4, drawY+4, TILE_SIZE-8, 5);
+                        break;
+                    case 3: // 傳送門（開啟前/關閉）
+                        ctx.fillStyle = ch4PortalOpen ? '#1a0a30' : '#0c0820';
+                        ctx.fillRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+                        ctx.strokeStyle = ch4PortalOpen ? '#7c3aed' : '#3b0764';
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(drawX+2, drawY+2, TILE_SIZE-4, TILE_SIZE-4);
+                        if (ch4PortalOpen) {
+                            ctx.fillStyle = `rgba(124,58,237,${0.15 + 0.1*Math.sin(Date.now()/300)})`;
+                            ctx.fillRect(drawX+4, drawY+4, TILE_SIZE-8, TILE_SIZE-8);
+                        }
+                        break;
+                }
+                return;
+            }
 
             if (currentChapter === 3) {
                 // Chapter 3: 咖啡雅座廢墟地磚
@@ -2657,12 +3314,28 @@
 
         // Main game renderer
         function draw() {
+            ctx.save();
+            // ── 第四章：走近冥判官時畫面緩緩傾斜 ──
+            if (currentChapter === 4) {
+                const judge = entities.find(e => e.id === 'c4_judge');
+                if (judge) {
+                    const dist = Math.hypot((player.x+player.width/2)-(judge.x+TILE_SIZE/2), (player.y+player.height/2)-(judge.y+TILE_SIZE/2));
+                    const targetTilt = dist < 200 ? ((200 - dist) / 200) * 3.5 * (Math.PI/180) : 0;
+                    ch4TiltAngle += (targetTilt - ch4TiltAngle) * 0.04;
+                } else { ch4TiltAngle *= 0.96; }
+                if (Math.abs(ch4TiltAngle) > 0.0001) {
+                    ctx.translate(canvas.width/2, canvas.height/2);
+                    ctx.rotate(ch4TiltAngle);
+                    ctx.translate(-canvas.width/2, -canvas.height/2);
+                }
+            }
             ctx.fillStyle = '#050505';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             for (let r = 0; r < MAP_ROWS; r++) {
                 for (let c = 0; c < MAP_COLS; c++) {
-                    const tileType = (currentChapter === 3) ? mapData.cafe_interior[r][c] :
+                    const tileType = (currentChapter === 4) ? mapData.tribunal_interior[r][c] :
+                                     (currentChapter === 3) ? mapData.cafe_interior[r][c] :
                                      (currentChapter === 2) ? mapData.mansion_interior[r][c] :
                                      mapData[currentEra][r][c];
                     drawTile(tileType, c * TILE_SIZE, r * TILE_SIZE);
@@ -2767,6 +3440,78 @@
                     vigGrd.addColorStop(0, 'rgba(0,0,0,0)');
                     vigGrd.addColorStop(1, `rgba(55, 10, 90, ${vigA})`);
                     ctx.fillStyle = vigGrd;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+
+            // ══ 第四章：靈魂審判廳氛圍特效 ══
+            if (currentChapter === 4) {
+                // 火炬閃爍暗化
+                ch4TorchTimer++;
+                if (ch4TorchTimer > 80 && Math.random() < 0.015) {
+                    ch4TorchFlicker = 0.2 + Math.random() * 0.5;
+                    ch4TorchTimer = 0;
+                    setTimeout(() => { ch4TorchFlicker = 1.0; }, 60 + Math.random() * 120);
+                }
+                if (ch4TorchFlicker < 0.95) {
+                    ctx.fillStyle = `rgba(0,0,0,${Math.min(0.85, 1.0 - ch4TorchFlicker)})`;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
+                // 幽暗靛紫薄霧
+                const t4mist = 0.18 + (ch4JudgePhase * 0.07);
+                ctx.fillStyle = `rgba(5, 2, 18, ${Math.min(0.5, t4mist)})`;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                // 靈魂粒子
+                for (let i = ch4SpiritParticles.length - 1; i >= 0; i--) {
+                    const p = ch4SpiritParticles[i];
+                    p.y -= p.speed; p.alpha -= 0.004; p.x += Math.sin(Date.now()*0.001 + i)*0.4;
+                    if (p.alpha <= 0) { ch4SpiritParticles.splice(i, 1); continue; }
+                    ctx.globalAlpha = p.alpha;
+                    ctx.font = '14px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillStyle = '#a78bfa';
+                    ctx.fillText('✦', p.x - camera.x, p.y - camera.y);
+                    ctx.globalAlpha = 1.0;
+                }
+                // 隨機生成粒子
+                if (Math.random() < 0.08) {
+                    ch4SpiritParticles.push({ x: Math.random()*MAP_COLS*TILE_SIZE, y: (MAP_ROWS-2)*TILE_SIZE, speed: 0.4+Math.random()*0.6, alpha: 0.6 });
+                }
+                // 封印門之手視覺（出現 3 秒，停留畫面底部）
+                if (ch4HandsShown) {
+                    const handX = 9*TILE_SIZE - camera.x + TILE_SIZE;
+                    const handY = 13*TILE_SIZE - camera.y;
+                    const handPulse = Math.sin(Date.now()*0.005) * 0.2 + 0.8;
+                    ctx.globalAlpha = handPulse * 0.85;
+                    ctx.font = '38px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('🤚', handX - 18, handY);
+                    ctx.fillText('🤚', handX + 18, handY);
+                    ctx.globalAlpha = 1.0;
+                }
+                // 傳送門光暈
+                const portalX = 9*TILE_SIZE - camera.x;
+                const portalY = 12*TILE_SIZE - camera.y;
+                const portalPulse = 0.2 + 0.15*Math.sin(Date.now()/400);
+                const pgrd = ctx.createRadialGradient(portalX+TILE_SIZE, portalY+TILE_SIZE/2, 5, portalX+TILE_SIZE, portalY+TILE_SIZE/2, 55);
+                pgrd.addColorStop(0, `rgba(${ch4PortalOpen?'160,80,255':'60,20,120'},${portalPulse})`);
+                pgrd.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = pgrd;
+                ctx.fillRect(portalX-20, portalY-20, TILE_SIZE*2+40, TILE_SIZE+40);
+                // 邊緣臉孔恐怖效果
+                if (ch4EdgeFaceAlpha > 0) {
+                    ctx.globalAlpha = ch4EdgeFaceAlpha;
+                    ctx.font = '48px sans-serif';
+                    ctx.textAlign = 'left';
+                    ctx.fillText('👁️', 4, 30);
+                    ctx.textAlign = 'right';
+                    ctx.fillText('👁️', canvas.width-4, 30);
+                    ctx.globalAlpha = 1.0;
+                    ch4EdgeFaceAlpha = Math.max(0, ch4EdgeFaceAlpha - 0.015);
+                }
+                // 方向顛倒警告
+                if (ch4ControlsReversed && ch4ControlsTimer % 60 < 30) {
+                    ctx.fillStyle = 'rgba(100,0,180,0.15)';
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
                 }
             }
@@ -2879,6 +3624,43 @@
             }
 
             drawLightingOverlay();
+
+            // ── 第四章後疊加特效（需在 lighting overlay 上方）──
+            if (currentChapter === 4) {
+                // 低理智邊緣臉孔（理智 < 40 時開始出現）
+                if (sanity < 40 && !currentDialogue) {
+                    const faceAlpha = Math.max(0, (40 - sanity) / 40) * 0.55;
+                    const pulse = Math.sin(Date.now()*0.0008) * 0.5 + 0.5;
+                    ctx.globalAlpha = faceAlpha * pulse;
+                    ctx.font = '52px sans-serif';
+                    ctx.textAlign = 'left';
+                    // 左邊角落臉
+                    ctx.fillText('😶', 2, canvas.height - 8);
+                    // 右上角臉（快消失）
+                    const rightPulse = Math.sin(Date.now()*0.0013 + 2) * 0.5 + 0.5;
+                    ctx.globalAlpha = faceAlpha * rightPulse * 0.7;
+                    ctx.textAlign = 'right';
+                    ctx.fillText('🕳️', canvas.width - 2, 52);
+                    ctx.globalAlpha = 1.0;
+                }
+                // 石壁倒寫求救文字（理智 < 25 或收集錯誤）
+                if (ch4WallTextTimer > 0) {
+                    ch4WallTextTimer--;
+                    const wa = Math.min(1, ch4WallTextTimer / 30) * 0.75;
+                    ctx.save();
+                    ctx.globalAlpha = wa;
+                    ctx.translate(canvas.width/2, canvas.height/2);
+                    ctx.scale(-1, -1);
+                    ctx.font = 'bold 18px "Noto Serif TC"';
+                    ctx.fillStyle = '#dc2626';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('救 我 出 去', 0, -60);
+                    ctx.fillText('別 進 來', 0, -30);
+                    ctx.restore();
+                }
+            }
+            ctx.restore(); // restore tilt transform
+
         }
 
         // Primary game loop
@@ -3131,6 +3913,81 @@
                     }
                 }
 
+                // ══ 第四章：審判廳 gameLoop 邏輯 ══
+                if (currentChapter === 4) {
+                    // 方向顛倒計時
+                    if (ch4ControlsReversed) {
+                        ch4ControlsTimer--;
+                        if (ch4ControlsTimer <= 0) {
+                            ch4ControlsReversed = false;
+                            showNotification("🧭 方向感恢復了……暫時地。");
+                        }
+                    }
+                    // 理智自動下降
+                    sanity = Math.max(0, sanity - 0.003);
+                    // 神秘實體（第二次見法官後生成）
+                    if (ch4JudgePhase >= 2 && !ch4MysterySpawned) {
+                        ch4MysterySpawned = true;
+                        entities.push({
+                            id: 'c4_mystery',
+                            x: 1 * TILE_SIZE, y: 6 * TILE_SIZE,
+                            width: TILE_SIZE, height: TILE_SIZE,
+                            chapter: 4, solved: false,
+                            icon: '👤',
+                            dialogue: [
+                                { speaker: '???', avatar: '👤', text: '（它只是站在那裡，無聲地看著你。它的輪廓在搖曳的火炬光下不斷變形……）' },
+                                { speaker: '???', avatar: '💀', text: '「……第六個位子……已經為你準備好了……」' },
+                            ]
+                        });
+                        showNotification("💀 角落裡出現了什麼東西……");
+                    }
+                    // 更新理智條
+                    const sBar4 = document.getElementById('sanityBar');
+                    if (sBar4) sBar4.style.width = sanity + '%';
+                    // 理智低於 20：方向顛倒（無提示）
+                    if (sanity < 20 && !ch4ControlsReversed && !ch4LowSanityReverseUsed) {
+                        ch4LowSanityReverseUsed = true;
+                        ch4ControlsReversed = true;
+                        ch4ControlsTimer = 300; // 5 秒（60fps）
+                        // 無任何文字提示，只是靜靜發生
+                    }
+                    // 理智低於 30：觸發石壁文字
+                    if (sanity < 30 && ch4WallTextTimer === 0 && Math.random() < 0.002) {
+                        ch4WallTextTimer = 120;
+                    }
+                    // 角落獨白觸發（地圖右下角 col≥16, row≥10）
+                    if (!ch4MonologueTriggered && !currentDialogue) {
+                        const col = Math.floor((player.x + player.width/2) / TILE_SIZE);
+                        const row = Math.floor((player.y + player.height/2) / TILE_SIZE);
+                        if (col >= 16 && row >= 10) {
+                            ch4MonologueTriggered = true;
+                            triggerDialogue([
+                                { speaker: '???', avatar: '🧑‍🎓', text: '（這聲音……是我自己的聲音。）' },
+                                { speaker: '阿誠（？）', avatar: '🧑‍🎓', text: '「我把大古推下去了。那天在枯井邊，是我。」' },
+                                { speaker: '阿誠', avatar: '😱', text: '（……那件事從來沒有發生過。那是我的聲音，但那句話是謊言——或者說，是還沒發生過的事。）' },
+                            ]);
+                        }
+                    }
+                    // 封印門之手（靠近傳送門且裁決未完成）
+                    if (!ch4HandsTriggered && !ch4PortalOpen && !ch4Ended && !currentDialogue) {
+                        const px = player.x + player.width/2;
+                        const py = player.y + player.height/2;
+                        const gateX = 9.5 * TILE_SIZE;
+                        const gateY = 13 * TILE_SIZE;
+                        if (Math.hypot(px - gateX, py - gateY) < 80) {
+                            ch4HandsTriggered = true;
+                            ch4HandsShown = true;
+                            setTimeout(() => { ch4HandsShown = false; }, 3000);
+                            showNotification("（門縫裡伸出了一雙手……三秒後縮回去了。）");
+                        }
+                    }
+                    // 理智歸零：定罪結局
+                    if (sanity <= 0 && !ch4Ended) {
+                        ch4Ended = true;
+                        setTimeout(() => { triggerChapter4CondemnedEnding(); }, 600);
+                    }
+                }
+
                 updateCamera();
                 draw();
             }
@@ -3145,6 +4002,9 @@
             if (jumpTo === '3') {
                 sessionStorage.removeItem('startChapter');
                 setTimeout(() => { selectAndStartChapter(3); }, 300);
+            } else if (jumpTo === '4') {
+                sessionStorage.removeItem('startChapter');
+                setTimeout(() => { selectAndStartChapter(4); }, 300);
             }
         }
 
